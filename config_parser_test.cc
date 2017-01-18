@@ -73,3 +73,20 @@ TEST_F(NginxStringConfigTest, UnbalancedCurlyBracesNested) {
 TEST_F(NginxStringConfigTest, BlockAdvanced) {
 	EXPECT_TRUE(ParseString("server { port { 8080 ;}}"));
 }
+
+TEST_F(NginxStringConfigTest, Commenttest) {
+	EXPECT_TRUE(ParseString("server { port { 8080 ;}} # comment 1"));
+	EXPECT_EQ(1, out_config_.statements_.size());
+}
+
+TEST_F(NginxStringConfigTest, Statementstest) {
+	EXPECT_TRUE(ParseString("server { port { 8080 ;}}"));
+	EXPECT_EQ(1, out_config_.statements_.size());
+	EXPECT_EQ("server",out_config_.statements_[0]->tokens_[0]);
+	
+	EXPECT_EQ("port",out_config_.statements_.at(0)->child_block_->statements_.at(0)->tokens_.at(0));
+	
+	EXPECT_EQ("8080",out_config_.statements_.at(0)->child_block_->statements_.at(0)->child_block_->statements_.at(0)->tokens_.at(0));
+	
+	
+}
