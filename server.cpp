@@ -22,7 +22,7 @@ void connection::do_read() {
   socket_.async_read_some(boost::asio::buffer(buffer_),
       [this, self](boost::system::error_code ec, std::size_t bytes)
       {
-      	reply.append(buffer_.data(), buffer_.data() + bytes);
+      	reply_.content.append(buffer_.data(), buffer_.data() + bytes);
       	if (buffer_.data().substr(buffer_.data().size() - 4, 4) == '\r\n\r\n' )
       		do_write();
       	else
@@ -32,13 +32,12 @@ void connection::do_read() {
 
 void connection::do_write() {
 	auto self(shared_from_this());
-	boost::asio::const_buffer a[4];
-	a[0] = boost::asio::buffer("HTTP/1.0 200 OK\r\n");
-	a[1] = boost::asio::buffer("Content-Length: " + std::to_string(reply.size()) + "\r\n");
-	a[2] = boost::asio::buffer("Content-Type: text/plain\r\n\r\n");
-	a[3] = boost::asio::buffer(reply);
 
-	boost::asio::async_write(socket_, a,
+	reply_.status = 200;
+	reply_.headers[0] = "Content-Length: " + std::to_string(reply_.content.size());
+	reply_.headers[1] = "Content-Type: text/plain";
+
+	boost::asio::async_write(socket_, reply_.to_buffers(),
       [this, self](boost::system::error_code ec, std::size_t)
       {
         if (!ec)

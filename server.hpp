@@ -3,6 +3,7 @@
 
 #include <boost/asio.hpp>
 #include <string>
+#include "reply.hpp"
 
 namespace http {
 namespace server {
@@ -12,7 +13,7 @@ class server
 public:
   server(const server&) = delete;
   server& operator=(const server&) = delete;
-  explicit server(const std::string& address, const std::string& port);
+  explicit server(const sdt::string& address, const std::string& port);
   void run();
 
 private:
@@ -38,7 +39,7 @@ private:
 
   boost::asio::ip::tcp::socket socket_;
   std::array<char, 16384> buffer_;
-  std::string reply_content;
+  reply reply_;
 
 };
 
