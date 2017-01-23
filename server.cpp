@@ -23,7 +23,7 @@ void connection::do_read() {
       [this, self](boost::system::error_code ec, std::size_t bytes)
       {
       	reply_.content.append(buffer_.data(), buffer_.data() + bytes);
-      	if (buffer_.data().substr(buffer_.data().size() - 4, 4) == '\r\n\r\n' )
+      	if (reply_.content.substr(reply_.content.size() - 4, 4) == "\r\n\r\n" )
       		do_write();
       	else
       		do_read();
@@ -33,9 +33,11 @@ void connection::do_read() {
 void connection::do_write() {
 	auto self(shared_from_this());
 
-	reply_.status = 200;
-	reply_.headers[0] = "Content-Length: " + std::to_string(reply_.content.size());
-	reply_.headers[1] = "Content-Type: text/plain";
+	reply_.status = reply::ok;
+	reply_.headers[0].name = "Content-Length";
+	reply_.headers[0].value= std::to_string(reply_.content.size());
+	reply_.headers[1].name = "Content-Type";
+	reply_.headers[1].value = "text/plain";
 
 	boost::asio::async_write(socket_, reply_.to_buffers(),
       [this, self](boost::system::error_code ec, std::size_t)
@@ -79,7 +81,7 @@ void server::do_accept() {
 
         if (!ec)
         {
-          std::make_shared<connection>(std::move(socket_)->start();
+          std::make_shared<connection>(std::move(socket_))->start();
         }
 
         do_accept();

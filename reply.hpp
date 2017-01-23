@@ -4,10 +4,15 @@
 #include <string>
 #include <vector>
 #include <boost/asio.hpp>
-#include "header.hpp"
 
 namespace http {
 namespace server {
+
+struct header
+{
+  std::string name;
+  std::string value;
+};
 
 struct reply
 {
@@ -26,6 +31,9 @@ struct reply
   std::string content;
   std::vector<boost::asio::const_buffer> to_buffers();
 };
+
+
+
 
 
 }}

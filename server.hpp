@@ -13,7 +13,7 @@ class server
 public:
   server(const server&) = delete;
   server& operator=(const server&) = delete;
-  explicit server(const sdt::string& address, const std::string& port);
+  explicit server(const std::string& address, const std::string& port);
   void run();
 
 private:
