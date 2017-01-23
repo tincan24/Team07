@@ -7,19 +7,19 @@ namespace server {
 namespace status_strings {
 
 const std::string ok =
-  "HTTP/1.0 200 OK\r\n";
+  "HTTP/1.1 200 OK\r\n";
 const std::string moved_permanently =
-  "HTTP/1.0 301 Moved Permanently\r\n";
+  "HTTP/1.1 301 Moved Permanently\r\n";
 const std::string bad_request =
-  "HTTP/1.0 400 Bad Request\r\n";
+  "HTTP/1.1 400 Bad Request\r\n";
 const std::string unauthorized =
-  "HTTP/1.0 401 Unauthorized\r\n";
+  "HTTP/1.1 401 Unauthorized\r\n";
 const std::string forbidden =
-  "HTTP/1.0 403 Forbidden\r\n";
+  "HTTP/1.1 403 Forbidden\r\n";
 const std::string not_found =
-  "HTTP/1.0 404 Not Found\r\n";
+  "HTTP/1.1 404 Not Found\r\n";
 const std::string internal_server_error =
-  "HTTP/1.0 500 Internal Server Error\r\n";
+  "HTTP/1.1 500 Internal Server Error\r\n";
 
 boost::asio::const_buffer to_buffer(reply::status_type status)
 {
