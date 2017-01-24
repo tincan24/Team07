@@ -1,3 +1,7 @@
+//Based off: http://www.boost.org/doc/libs/1_62_0/doc/html/boost_asio/example/cpp11/http/server/server.cpp
+// and http://www.boost.org/doc/libs/1_62_0/doc/html/boost_asio/example/cpp11/http/server/connection.cpp
+
+
 #include "server.hpp"
 #include <utility>
 #include <vector>

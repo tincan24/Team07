@@ -1,3 +1,6 @@
+//Based off http://www.boost.org/doc/libs/1_62_0/doc/html/boost_asio/example/cpp11/http/server/connection.hpp
+// and http://www.boost.org/doc/libs/1_62_0/doc/html/boost_asio/example/cpp11/http/server/server.hpp
+
 #ifndef HTTP_SERVER_HPP
 #define HTTP_SERVER_HPP
 

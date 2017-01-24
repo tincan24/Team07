@@ -1,3 +1,5 @@
+//Based off http://www.boost.org/doc/libs/1_62_0/doc/html/boost_asio/example/cpp11/http/server/reply.cpp
+
 #include "reply.hpp"
 #include <string>
 

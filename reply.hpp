@@ -1,3 +1,6 @@
+// Based of http://www.boost.org/doc/libs/1_62_0/doc/html/boost_asio/example/cpp11/http/server/reply.hpp
+//and http://www.boost.org/doc/libs/1_62_0/doc/html/boost_asio/example/cpp11/http/server/header.hpp
+
 #ifndef HTTP_REPLY_HPP
 #define HTTP_REPLY_HPP
 
