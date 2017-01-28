@@ -9,3 +9,5 @@ webserver:
 clean:
 	rm -rf *.o webserver
 
+integrate:
+	./integration.sh
