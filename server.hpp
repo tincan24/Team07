@@ -11,14 +11,15 @@
 namespace http {
 namespace server {
 
+
 class server
 {
 public:
   server(const server&) = delete;
   server& operator=(const server&) = delete;
   explicit server(const std::string& address, const std::string& port);
+  bool checkServer(const boost::system::error_code& ec);
   void run();
-
 private:
   void do_accept();
   boost::asio::io_service io_service_;

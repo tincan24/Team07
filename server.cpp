@@ -59,6 +59,7 @@ void connection::do_write() {
       });
 }
 
+
 // SERVER CONNECTION RELATED FUNCTIONS
 
 server::server(const std::string& address, const std::string& port)
@@ -77,6 +78,15 @@ server::server(const std::string& address, const std::string& port)
 
 void server::run() {
 	io_service_.run();
+}
+
+bool server::checkServer(const boost::system::error_code& ec) {
+  if (ec) {
+    return false;
+  } 
+  do_accept(); // there are no errors, so we are good to accept.
+
+  return true;
 }
 
 void server::do_accept() {
