@@ -58,7 +58,8 @@ bool ServerConfig::ParseStatements() {
 
 std::string ServerConfig::ToString() {
   std::string config_output;
-  config_output.append("Server is running on Port: " + GetPortNo());
+  config_output.append("Server is running on Port: ");
+  config_output.append(std::to_string(GetPortNo()));
 
   return config_output;
 }
