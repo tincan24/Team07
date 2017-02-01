@@ -14,7 +14,12 @@ connection::connection(boost::asio::ip::tcp::socket socket): socket_(std::move(s
 {}
 
 void connection::start() {
-	do_read();
+  try {
+    do_read();
+  }
+	catch(boost::system::error_code &e) {
+    throw e;
+  }
 }
 
 void connection::stop() {
@@ -65,7 +70,13 @@ void connection::do_write() {
 server::server(const std::string& address, const std::string& port)
   : io_service_(),
     acceptor_(io_service_),
-    socket_(io_service_) {
+  socket_(io_service_) {
+
+  int addressNoRead = std::stoi(address);
+  if (addressNoRead < 0) {
+    throw boost::system::errc::make_error_code(boost::system::errc::bad_address);
+  }
+    
   boost::asio::ip::tcp::resolver resolver(io_service_);
   boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve({address, port});
   acceptor_.open(endpoint.protocol());
@@ -74,23 +85,27 @@ server::server(const std::string& address, const std::string& port)
   acceptor_.listen();
 
   do_accept();
+
+  int portNoRead = std::stoi(port);
+  if (portNoRead <= 0 || portNoRead > 65535) {
+    throw boost::system::errc::make_error_code(boost::system::errc::argument_out_of_domain);
+  }
+  
 }
 
 void server::run() {
-	io_service_.run();
-}
-
-bool server::checkServer(const boost::system::error_code& ec) {
-  if (ec) {
-    return false;
-  } 
-  do_accept(); // there are no errors, so we are good to accept.
-
-  return true;
+  try {
+    io_service_.run();
+  }
+  catch(boost::system::error_code const &e) {
+    throw e;
+  }
+	
 }
 
 void server::do_accept() {
- 	acceptor_.async_accept(socket_,
+  try {
+    acceptor_.async_accept(socket_,
       [this](boost::system::error_code ec)
       {
         if (!acceptor_.is_open())
@@ -101,10 +116,16 @@ void server::do_accept() {
         if (!ec)
         {
           std::make_shared<connection>(std::move(socket_))->start();
+        } else if (ec) {
+          throw ec;
         }
 
         do_accept();
       });
+  }
+ 	catch (boost::system::error_code const &e) {
+    throw e;
+  }
 }
 
 }
