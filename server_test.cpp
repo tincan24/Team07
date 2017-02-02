@@ -32,26 +32,21 @@ TEST(ConnectionTesting, InitializationAndConnectionTest) {
 
 }
 
+void handler(
+	const boost::system::error_code& ec, std::size_t bytes
+	){};
+
+
 TEST(ConnectionTesting, ConnectionConstructor) {
 	try {
-		
-		http::server::server server_("127.0.0.1", "12345");
-		
-		boost::asio::io_service io_service_;
-		boost::asio::ip::tcp::acceptor acceptor_(io_service_);
-
-		boost::asio::ip::tcp::socket socket_(io_service_);
-
-		boost::system::error_code ec;
-  		boost::asio::ip::tcp::resolver resolver(io_service_);
-  		boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve({"127.0.0.1",  "12345"}, ec);
-  		acceptor_.open(endpoint.protocol());
-  		acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-  		//acceptor_.bind(endpoint);
-
-  		throw ec;
-		//http::server::connection connection_(socket_);	
-
+	boost::asio::io_service io;
+	boost::asio::ip::tcp::socket sock(io);
+	std::string buffer = "GET /index.html HTTP/1.1\r\n\r\n";
+	
+	sock.async_write_some(boost::asio::buffer(buffer), 
+		std::bind([this, self](boost::system::error_code ec, std::size_t bytes))
+		{});
+	http::server::connection(std::move(sock)).start();
 	}
 	catch(boost::system::error_code &e) {
 		//std::cout << e.message();

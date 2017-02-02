@@ -9,7 +9,7 @@ all: SRCFILES += main.cpp
 all: webserver
 
 test: CXXFLAGS += -isystem ${GTEST_DIR}/include
-test: SRCFILES += config_parser_test.cc config_test.cc ${GTEST_DIR}/src/gtest_main.cc libgtest.a
+test: SRCFILES += config_parser_test.cc config_test.cc server_test.cpp reply_test.cpp ${GTEST_DIR}/src/gtest_main.cc libgtest.a
 test: | clean webserver_test
 
 run:
