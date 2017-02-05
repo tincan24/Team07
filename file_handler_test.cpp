@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "request.hpp"
 #include "reply.hpp"
-#include "file_handler.cpp"
+#include "file_handler.hpp"
 #include <string>
 #include <limits.h>
 #include <unistd.h>

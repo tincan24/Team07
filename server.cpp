@@ -53,18 +53,17 @@ void connection::do_read() {
         }
 
         if (echo) {
-          //call other file handler
+          echo_handler echo_handler_;
+	  echo_handler_.handle_request(request_, reply_);
         }
-        else if (!echo) {
+        else {
           request_.uri = filename;
 
           file_handler file_handler_(doc_root);
           file_handler_.handle_request(request_, reply_);
-          do_write();
         }
-        else {
-          do_read();
-        }
+
+        do_write();
 
         //reply_.content.append(buffer_.data(), buffer_.data() + bytes);
       	//if (reply_.content.substr(reply_.content.size() - 4, 4) == "\r\n\r\n" )
@@ -76,17 +75,6 @@ void connection::do_read() {
 
 void connection::do_write() {
 	auto self(shared_from_this());
-
-	/*reply_.status = reply::ok;
-	header head0;
-	head0.name = "Content-Length";
-	head0.value = std::to_string(reply_.content.size());
-	reply_.headers.push_back(head0);
-        
-	header head1;
-	head1.name = "Content-Type";
-	head1.value = "text/plain";
-	reply_.headers.push_back(head1);*/
 
 	boost::asio::async_write(socket_, reply_.to_buffers(),
       [this, self](boost::system::error_code ec, std::size_t)

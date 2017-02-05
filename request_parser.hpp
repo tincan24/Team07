@@ -4,11 +4,10 @@
 #define HTTP_REQUEST_PARSER_HPP
 
 #include <tuple>
+#include "request.hpp"
 
 namespace http {
 namespace server {
-
-struct request;
 
 class request_parser
 {
@@ -21,6 +20,8 @@ public:
   std::tuple<result_type, InputIt> parse(request& req,
       InputIt begin, InputIt end)
   {
+    req.content.append(begin, end);
+    req.bytes = end - begin;
     while (begin != end)
     {
       result_type result = consume(req, *begin++);

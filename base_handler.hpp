@@ -5,10 +5,6 @@
 namespace http {
 namespace server {
 
-//TODO: idk if you wanna include these,example code did like this
-struct request;
-struct reply;
-
 class base_handler{
 public:
 	base_handler() {};

@@ -9,7 +9,8 @@
 #include "reply.hpp"
 #include "request.hpp"
 #include "request_parser.hpp"
-#include "file_handler.cpp"
+#include "file_handler.hpp"
+#include "echo_handler.hpp"
 
 namespace http {
 namespace server {
