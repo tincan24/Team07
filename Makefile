@@ -1,7 +1,7 @@
 CXX=g++
 CXXOPTIMIZE= -O2
 CXXFLAGS= -g -Wall -pthread -std=c++11
-SRCFILES = server.cpp reply.cpp config.cc config_parser.cc
+SRCFILES = server.cpp reply.cpp request_parser.cpp config.cc config_parser.cc
 GTEST_DIR = googletest/googletest
 
 all: CXXFLAGS += $(CXXOPTIMIZE)
@@ -20,12 +20,12 @@ run_coverage:
 	gcov -r server.cpp reply.cpp config.cc config_parser.cc
 
 webserver:
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(SRCFILES) -lboost_system
+	$(CXX) -o $@ $^ $(CXXFLAGS) $(SRCFILES) -lboost_filesystem -lboost_system
 
 webserver_test: 
 	$(CXX) $(CXXFLAGS) -I${GTEST_DIR} -c ${GTEST_DIR}/src/gtest-all.cc
 	ar -rv libgtest.a gtest-all.o
-	$(CXX) -o $@ $^ $(CXXFLAGS) -fprofile-arcs -ftest-coverage $(SRCFILES) -lboost_system
+	$(CXX) -o $@ $^ $(CXXFLAGS) -fprofile-arcs -ftest-coverage $(SRCFILES) -lboost_filesystem -lboost_system
 
 
 clean:
