@@ -9,7 +9,7 @@ all: SRCFILES += main.cpp
 all: webserver
 
 test: CXXFLAGS += -isystem ${GTEST_DIR}/include
-test: SRCFILES += config_parser_test.cc config_test.cc server_test.cpp reply_test.cpp ${GTEST_DIR}/src/gtest_main.cc libgtest.a
+test: SRCFILES += config_parser_test.cc config_test.cc server_test.cpp reply_test.cpp request_parser_test.cpp ${GTEST_DIR}/src/gtest_main.cc libgtest.a
 test: | clean webserver_test
 
 run:
@@ -17,7 +17,7 @@ run:
 
 run_coverage:
 	./webserver_test
-	gcov -r server.cpp reply.cpp config.cc config_parser.cc
+	gcov -r server.cpp reply.cpp request_parser.cpp config.cc config_parser.cc
 
 webserver:
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(SRCFILES) -lboost_filesystem -lboost_system
