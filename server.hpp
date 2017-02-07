@@ -7,6 +7,10 @@
 #include <boost/asio.hpp>
 #include <string>
 #include "reply.hpp"
+#include "request.hpp"
+#include "request_parser.hpp"
+#include "file_handler.hpp"
+#include "echo_handler.hpp"
 
 namespace http {
 namespace server {
@@ -44,6 +48,8 @@ private:
   boost::asio::ip::tcp::socket socket_;
   std::array<char, 16384> buffer_;
   reply reply_;
+  request request_;
+  request_parser request_parser_;
 
 };
 

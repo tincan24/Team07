@@ -5,6 +5,7 @@
 #include "server.hpp"
 #include <utility>
 #include <vector>
+#include <boost/filesystem.hpp>
 
 namespace http {
 namespace server {
@@ -31,27 +32,49 @@ void connection::do_read() {
   socket_.async_read_some(boost::asio::buffer(buffer_),
       [this, self](boost::system::error_code ec, std::size_t bytes)
       {
-      	reply_.content.append(buffer_.data(), buffer_.data() + bytes);
-      	if (reply_.content.substr(reply_.content.size() - 4, 4) == "\r\n\r\n" )
-      		do_write();
-      	else
-      		do_read();
+      	request_parser::result_type res;
+        std::tie(res, std::ignore) = request_parser_.parse(request_, buffer_.data(), buffer_.data() + bytes);
+        std::string uri = request_.uri;
+        boost::filesystem::path path_{uri};
+        boost::filesystem::path path1_{"/static1"};
+        boost::filesystem::path path2_{"/static2"};
+        //std::cout << "rootPath is " << path_.parent_path()<< std::endl;
+        std::string doc_root;
+        std::string filename = "/" + path_.filename().string();
+        //std::cout << "filename is " << filename << std::endl;
+
+        int echo = 0;
+        if (uri == "/echo") {
+          echo = 1;
+        } else if (path_.parent_path() == path1_) {
+          doc_root = "files";
+        } else if (path_.parent_path() == path2_) {
+          doc_root = "files2";
+        }
+
+        if (echo) {
+          echo_handler echo_handler_;
+	  echo_handler_.handle_request(request_, reply_);
+        }
+        else {
+          request_.uri = filename;
+
+          file_handler file_handler_(doc_root);
+          file_handler_.handle_request(request_, reply_);
+        }
+
+        do_write();
+
+        //reply_.content.append(buffer_.data(), buffer_.data() + bytes);
+      	//if (reply_.content.substr(reply_.content.size() - 4, 4) == "\r\n\r\n" )
+      	//	do_write();
+      	//else
+      	//	do_read();
       });
 }
 
 void connection::do_write() {
 	auto self(shared_from_this());
-
-	reply_.status = reply::ok;
-	header head0;
-	head0.name = "Content-Length";
-	head0.value = std::to_string(reply_.content.size());
-	reply_.headers.push_back(head0);
-        
-	header head1;
-	head1.name = "Content-Type";
-	head1.value = "text/plain";
-	reply_.headers.push_back(head1);
 
 	boost::asio::async_write(socket_, reply_.to_buffers(),
       [this, self](boost::system::error_code ec, std::size_t)
