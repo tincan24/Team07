@@ -10,6 +10,7 @@ namespace server {
 class echo_handler: public base_handler {
 public:
 	void handle_request(const request &req, reply& rep);
+	~echo_handler(){}
 };
 
 }
