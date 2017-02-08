@@ -1,3 +1,2 @@
-server {
-	address xxx;
-}
+address xxx;
+path /echo echo_handler;

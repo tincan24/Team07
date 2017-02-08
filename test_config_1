@@ -1,3 +1,2 @@
-server {
-	listen 12345;
-}
+port 12345;
+path /echo echo_handler;
