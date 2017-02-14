@@ -6,6 +6,7 @@
 
 #include <boost/asio.hpp>
 #include <string>
+#include <boost/unordered_map.hpp>
 #include "reply.hpp"
 #include "request.hpp"
 #include "request_parser.hpp"
@@ -41,7 +42,7 @@ public:
   //explicit connection(boost::asio::ip::tcp::socket socket, Path* paths);
   void start();
   void stop();
-  Path* paths_;
+  boost::unordered_map<std::string, Path*>* paths_;
 
 private:
   void do_read();

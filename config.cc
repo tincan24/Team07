@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <string.h>
+#include <boost/foreach.hpp>
 
 #include "config.h"
 #include "base_handler.hpp"
@@ -17,7 +18,6 @@ const char* PATH_TOKEN = "path";
 const char* FILE_HANDLER_ROOT_TOKEN = "root";
 
 ServerConfig::ServerConfig(const char* configFilePath) {
-	paths = nullptr;
 	NginxConfigParser config_parser;
 	parsedConfig = new NginxConfig();
 	config_parser.Parse(configFilePath, parsedConfig);
@@ -29,7 +29,7 @@ int ServerConfig::GetPortNo() {
 	return portNo;
 }
 
-Path* ServerConfig::GetPaths() {
+boost::unordered_map<std::string, Path*>& ServerConfig::GetPaths() {
 	return paths;
 }
 
@@ -38,7 +38,7 @@ bool ServerConfig::ParseStatements() {
 	for(const auto& statement : parsedConfig->statements_)
 	{
 		if(statement && statement->tokens_.size() >= 1)
-			ParseStatement(statement, getLastPath());
+			ParseStatement(statement);
 	}
 
 	if(portNo == 0)
@@ -47,32 +47,10 @@ bool ServerConfig::ParseStatements() {
 		portNo = 80;
 		throw InvalidConfigException("Port number missing in config file.");
 	}
-	if(paths == nullptr)
+	if(paths.empty())
 		throw InvalidConfigException("No handler paths specified. Server not useable.");
 
 	return true;
-}
-
-
-
-Path* ServerConfig::getLastPath(){
-	if(paths == nullptr)
-		return paths;
-
-	Path* last_path = paths;
-	while(last_path != nullptr && last_path->next_path != nullptr)
-		last_path = last_path->next_path;
-	return last_path;
-}
-
-PathOption* ServerConfig::getLastPathOption(Path* path){
-	if(path == nullptr)
-		return nullptr;
-
-	PathOption* last_path_option = path->options;
-	while(last_path_option != nullptr && last_path_option->next_option != nullptr)
-		last_path_option = last_path_option->next_option;
-	return last_path_option;
 }
 
 bool ServerConfig::ParseStatement(std::shared_ptr<NginxConfigStatement> statement, Path* lastPath) {
@@ -91,69 +69,39 @@ bool ServerConfig::ParseStatement(std::shared_ptr<NginxConfigStatement> statemen
 	} 
 	else if(statement->tokens_[0].compare(PATH_TOKEN) == 0)
 	{
-
-		if(lastPath == nullptr)
-		{
-			lastPath = new Path();
-			paths = lastPath;
-		}
-		else
-		{
-			lastPath->next_path = new Path();
-			lastPath = lastPath->next_path;
-		}
-
-		lastPath->next_path = nullptr;
-		lastPath->options = nullptr;
-		lastPath->token = statement->tokens_[1];
-		lastPath->handler_name = statement->tokens_[2];
+		Path* new_path = new Path(statement->tokens_[1], statement->tokens_[2]);
+		paths[statement->tokens_[1]] = new_path;
 
 		if(statement->child_block_ != nullptr)
 			for (const auto& fileHandlerStatement : statement->child_block_->statements_) 
-				ParseStatement(fileHandlerStatement, lastPath);
-		if(strcmp(statement->tokens_[2].c_str(), http::server::FILE_HANDLER_NAME) == 0 && 
-		   (lastPath->options == nullptr || 
-			strcmp(lastPath->options->token.c_str(), FILE_HANDLER_ROOT_TOKEN) != 0))
+				ParseStatement(fileHandlerStatement, new_path);
+		if(statement->tokens_[2].compare(http::server::FILE_HANDLER_NAME) == 0 && 
+		   (new_path->options.empty() ||  
+			new_path->options[FILE_HANDLER_ROOT_TOKEN] == nullptr))
 			throw InvalidConfigException("No doc_root path specified. File handler not useable.");
 		return true;
 	}
 	else if (strcmp(statement->tokens_[0].c_str(), FILE_HANDLER_ROOT_TOKEN) == 0)
 	{
-		PathOption* new_option = getLastPathOption(lastPath);
-		if(new_option == nullptr)
-		{
-			new_option = new PathOption();
-			lastPath->options = new_option;
-		}
-		else
-		{
-			new_option->next_option = new PathOption();
-			new_option = new_option->next_option;
-		}
 
-		new_option->next_option = nullptr;
-		new_option->token = statement->tokens_[0];
-		new_option->value = statement->tokens_[1];
+		PathOption* new_option = new PathOption(statement->tokens_[0], statement->tokens_[1]);
+		lastPath->options[statement->tokens_[0]] = new_option;
 	}
 	return false;
 }
 
 ServerConfig::~ServerConfig(){
-	while(paths != nullptr && paths->next_path!= nullptr)
-	{
-		Path* next_path = paths->next_path;
-		while(paths->options != nullptr && paths->options->next_option != nullptr)
-		{
+	typedef std::pair<std::string, Path*> map_val_type;
+	typedef std::pair<std::string, PathOption*> option_map_val_type;
 
-			PathOption* next_option = paths->options->next_option;
-			delete(paths->options);
-			paths->options = next_option;
+	BOOST_FOREACH(map_val_type path, paths) 
+	{
+		BOOST_FOREACH(option_map_val_type option, std::get<1>(path)->options) 
+		{
+			delete(std::get<1>(option));
 		}
-		delete(paths->options);
-		delete(paths);
-		paths = next_path;
+		delete(std::get<1>(path));
 	}
-	delete(paths);
 }
 
 std::string ServerConfig::ToString() {

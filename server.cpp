@@ -2,7 +2,6 @@
 // and http://www.boost.org/doc/libs/1_62_0/doc/html/boost_asio/example/cpp11/http/server/connection.cpp
 
 #include <utility>
-#include <vector>
 #include <boost/filesystem.hpp>
 #include <string.h>
 
@@ -17,7 +16,7 @@ namespace server {
 // HTTP RESPONSE/REQUEST WRITE/READ RELATED FUNCTIONS
 connection::connection(boost::asio::ip::tcp::socket socket): socket_(std::move(socket))
 {
-	paths_ = nullptr;
+	//paths_ = nullptr;
 }
 
 //connection::connection(boost::asio::ip::tcp::socket socket, Path* paths): socket_(std::move(socket)), paths_(paths)
@@ -47,7 +46,22 @@ void connection::do_read() {
         boost::filesystem::path path_{uri};
 	base_handler* handler = nullptr;
 
-	Path* next_path = paths_;
+	auto cur_path = (*paths_)[path_.parent_path().string()];
+	if(cur_path == nullptr|| cur_path->options[std::string(FILE_HANDLER_ROOT_TOKEN)] == nullptr)
+		cur_path = (*paths_)[path_.string()];
+	if(cur_path != nullptr)
+	{
+		auto cur_option = cur_path->options[std::string(FILE_HANDLER_ROOT_TOKEN)];
+		std::string doc_root;
+		if(cur_option != nullptr)
+		{
+			request_.uri = "/" + path_.filename().string();
+			doc_root += cur_option->value;
+		}
+		handler = base_handler::make_handler(cur_path->handler_name, doc_root);
+	}
+
+	/*Path* next_path = paths_;
 	while(next_path != nullptr)
 	{
 		if((strcmp(next_path->token.c_str(), path_.parent_path().c_str()) == 0 &&
@@ -71,7 +85,7 @@ void connection::do_read() {
 			break;
 		}
 		next_path = next_path->next_path;
-	}
+	}*/
 
 	if(handler != nullptr)
         	handler->handle_request(request_, reply_);
@@ -184,7 +198,7 @@ void server::do_accept() {
 	  if(config != nullptr)
 	  {
           	std::shared_ptr<connection> con = std::make_shared<connection>(std::move(socket_));
-		con->paths_ = config->GetPaths();
+		con->paths_ = &config->GetPaths();
 		con->start();
 	  }
         } else if (ec) {
