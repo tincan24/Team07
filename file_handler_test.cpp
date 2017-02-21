@@ -20,7 +20,7 @@ TEST(SimpleRequestTest, Docroot) {
 	request req;
 	reply rep;
 	req.uri="/test.txt";
-	file_handler(currdir()).handle_request(req, rep);
+	file_handler(currdir()).HandleRequest(req, rep);
 	std::string test ="Just a test file to check webserver response in the Integration Test.\n";
 	EXPECT_EQ(rep.headers[0].name, "Content-Length");
 	EXPECT_EQ(rep.headers[0].value, std::to_string(test.length()));
@@ -33,7 +33,7 @@ TEST(BadRequestTest, Docroot) {
 	request req;
 	reply rep;
 	req.uri="abcd.txt";
-	file_handler(currdir()).handle_request(req, rep);
+	file_handler(currdir()).HandleRequest(req, rep);
 	EXPECT_EQ(rep.status, 400);
 }
 
@@ -41,6 +41,6 @@ TEST(FileNotFound, Docroot) {
 	request req;
 	reply rep;
 	req.uri="/abcd.txt";
-	file_handler(currdir()).handle_request(req, rep);
+	file_handler(currdir()).HandleRequest(req, rep);
 	EXPECT_EQ(rep.status, 404);
 }}}

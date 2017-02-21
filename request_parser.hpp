@@ -4,10 +4,23 @@
 #define HTTP_REQUEST_PARSER_HPP
 
 #include <tuple>
+#include <memory>
+#include <vector>
 #include "request.hpp"
 
+//TODO: naming
 namespace http {
 namespace server {
+
+struct request_parser_output{
+	std::string method;
+	std::string uri;
+	int http_version_major;
+	int http_version_minor;
+	std::vector<header> headers;
+	std::string content;
+	long unsigned int bytes;
+};
 
 class request_parser
 {
@@ -17,22 +30,23 @@ public:
   enum result_type { good, bad, indeterminate };
 
   template <typename InputIt>
-  std::tuple<result_type, InputIt> parse(request& req,
-      InputIt begin, InputIt end)
+  std::tuple<result_type, InputIt> parse(InputIt begin, InputIt end)
   {
     req.content.append(begin, end);
     req.bytes = end - begin;
     while (begin != end)
     {
-      result_type result = consume(req, *begin++);
+      result_type result = consume(*begin++);
       if (result == good || result == bad)
         return std::make_tuple(result, begin);
     }
     return std::make_tuple(indeterminate, begin);
   }
 
+  request_parser_output req;
+
 private:
-  result_type consume(request& req, char input);
+  result_type consume(char input);
   static bool is_char(int c);
   static bool is_ctl(int c);
   static bool is_tspecial(int c);

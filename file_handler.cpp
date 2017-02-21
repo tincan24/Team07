@@ -2,9 +2,12 @@
 #include "file_handler.hpp"
 #include <fstream>
 #include <sstream>
+#include <boost/filesystem.hpp>
 
 namespace http {
 namespace server {
+
+const char* FILE_HANDLER_ROOT_TOKEN = "root";
 
 bool file_handler::url_decode(const std::string& in, std::string& out)
 {
@@ -45,23 +48,41 @@ bool file_handler::url_decode(const std::string& in, std::string& out)
 	return true;
 }
 
-void file_handler::handle_request(const request &req, reply& rep){
-	std::string request_path;
-	if (!url_decode(req.uri, request_path))
+RequestHandler::Status file_handler::HandleRequest(const Request &request, Response* response){
+	std::string encoded_request_path;        
+	boost::filesystem::path path{request.uri()};
+
+	//This is to start after the doc_root-specifying token - only with the file name
+	auto pathIt = ++(++(path.begin()));
+	if(pathIt != path.end() && !path.filename().empty())
 	{
-	rep = reply::stock_reply(reply::bad_request);
-	return;
+		//TODO: check errors/long paths
+		//request_.uri = "/" + path.filename().string();
+		while(pathIt != path.end())
+		{
+			if(!pathIt->string().empty())
+				encoded_request_path += "/" + pathIt->string();
+			++pathIt;
+		}
+	}
+
+	std::string request_path;
+
+	if (!url_decode(encoded_request_path, request_path))
+	{
+		*response = Response::stock_response(Response::bad_request);
+		return RequestHandler::bad_request;
 	}
 	if (request_path.empty() || request_path[0] != '/'
 	|| request_path.find("..") != std::string::npos)
 	{
-	rep = reply::stock_reply(reply::bad_request);
-	return;
+		*response = Response::stock_response(Response::bad_request);
+		return RequestHandler::bad_request;
 	}
 
 	if (request_path[request_path.size() - 1] == '/')
 	{
-	request_path += "index.html";
+		request_path += "index.html";
 	}
 
 	// Determine the file extension.
@@ -70,25 +91,27 @@ void file_handler::handle_request(const request &req, reply& rep){
 	std::string extension;
  	if (last_dot_pos != std::string::npos && last_dot_pos > last_slash_pos)
 	{
-	extension = request_path.substr(last_dot_pos + 1);
+		extension = request_path.substr(last_dot_pos + 1);
 	}
 
 	std::string full_path = docroot + request_path;
 	std::ifstream is(full_path.c_str(), std::ios::in | std::ios::binary);
 	if (!is)
 	{
-	rep = reply::stock_reply(reply::not_found);
-	return;
+		*response = Response::stock_response(Response::not_found);
+		return RequestHandler::not_found;
 	}
 
-	rep.status = reply::ok;
+	response->SetStatus(Response::ok);
+
+	std::string body;
 	char buf[512];
 	while (is.read(buf, sizeof(buf)).gcount() > 0)
-rep.content.append(buf, is.gcount());
-	rep.headers.resize(2);
-	rep.headers[0].name = "Content-Length";
-	rep.headers[0].value = std::to_string(rep.content.size());
-	rep.headers[1].name = "Content-Type";
+		body.append(buf, is.gcount());
+
+	response->SetBody(body);
+
+	response->AddHeader("Content-Length", std::to_string(body.size()));
 	
 	if(extension == "gif") {
 		extension = "image/gif";
@@ -108,7 +131,27 @@ rep.content.append(buf, is.gcount());
 	else {
 		extension = "text/plain";
 	}
-	rep.headers[1].value = extension;
+
+	response->AddHeader("Content-Type", extension);
+
+	return RequestHandler::OK;
+}
+
+
+RequestHandler::Status file_handler::Init(const std::string& uri_prefix, const NginxConfig& config)
+{
+	uri_prefix_ = uri_prefix;
+
+	for(const auto& statement : config.statements_)
+	{
+		if(statement && statement->tokens_.size() >= 1)
+			if (statement->tokens_[0].compare(FILE_HANDLER_ROOT_TOKEN) == 0)
+				docroot = statement->tokens_[1];
+	}
+	if(!docroot.empty())
+		return RequestHandler::OK;
+	else
+		return RequestHandler::docroot_missing;
 }
 
 }
