@@ -1,7 +1,7 @@
 CXX=g++
 CXXOPTIMIZE= -O2
 CXXFLAGS= -g -Wall -pthread -std=c++11
-SRCFILES = server.cpp reply.cpp request_parser.cpp config.cc config_parser.cc base_handler.cpp echo_handler.cpp file_handler.cpp
+SRCFILES = server.cpp response.cpp request.cpp request_parser.cpp config.cc config_parser.cc request_handler.cpp echo_handler.cpp file_handler.cpp
 GTEST_DIR = googletest/googletest
 
 all: CXXFLAGS += $(CXXOPTIMIZE)
@@ -13,11 +13,11 @@ test: SRCFILES += config_parser_test.cc config_test.cc server_test.cpp reply_tes
 test: | clean webserver_test
 
 run:
-	./webserver
+	./webserver config
 
 run_coverage:
 	./webserver_test
-	gcov -r server.cpp reply.cpp config.cc config_parser.cc request_parser.cpp echo_handler.cpp file_handler.cpp
+	gcov -r server.cpp response.cpp config.cc config_parser.cc request_parser.cpp echo_handler.cpp file_handler.cpp request.cpp base_
 
 webserver:
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(SRCFILES) -lboost_filesystem -lboost_system

@@ -44,7 +44,11 @@ struct Path{
 	std::string token;
 	std::string handler_name;
 	boost::unordered_map<std::string, PathOption*> options;
+
+	NginxConfig* child_block_;
 };
+
+//TODO: check for duplicate paths and match longest path
 
 
 // The in-memory representation of the entire config.
@@ -57,7 +61,7 @@ class ServerConfig {
 	NginxConfig* parsedConfig;
 
  public:
-	ServerConfig(const char* configFilePath);
+	ServerConfig(const std::string& configFilePath);
 	int GetPortNo();
 	std::string ToString();
 	~ServerConfig();

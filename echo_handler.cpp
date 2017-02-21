@@ -6,20 +6,21 @@
 namespace http {
 namespace server {
 
-void echo_handler::handle_request(const request &req, reply& rep) {
-	rep.content += req.content;//.append(req.content, req.content+ req.bytes);
+RequestHandler::Status echo_handler::HandleRequest(const Request &request, Response* response) {
+	response->SetStatus(Response::ok);
+	response->SetBody(request.body()); //.append(req.content, req.content+ req.bytes);
 
-	rep.status = reply::ok;
-	header head0;
-	head0.name = "Content-Length";
-	head0.value = std::to_string(rep.content.size());
-	rep.headers.push_back(head0);
+	response->AddHeader("Content-Length", std::to_string(request.body().size()));
+	response->AddHeader("Content-Type", "text/plain");
 
-	header head1;
-	head1.name = "Content-Type";
-	head1.value = "text/plain";
-	rep.headers.push_back(head1);
+	return RequestHandler::OK;
+}
 
+
+RequestHandler::Status echo_handler::Init(const std::string& uri_prefix, const NginxConfig& config)
+{
+	uri_prefix_ = uri_prefix;
+	return RequestHandler::OK;
 }
 
 }

@@ -3,21 +3,25 @@
 #ifndef FILE_HANDLER_HPP
 #define FILE_HANDLER_HPP
 // Based Off http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/example/cpp11/http/server/request_handler.cpp
-#include "base_handler.hpp"
+#include "request_handler.hpp"
 
 namespace http {
 namespace server {
-class file_handler: public base_handler {
+
+extern const char* FILE_HANDLER_ROOT_TOKEN;
+
+class file_handler: public RequestHandler {
 public:
-	explicit file_handler(const std::string& doc){
-		this->docroot = doc;
-	}
-	bool url_decode(const std::string& in, std::string& out);
-	void handle_request(const request &req, reply& rep);
+	Status HandleRequest(const Request &request, Response* response);
+	Status Init(const std::string& uri_prefix, const NginxConfig& config);
+
 	~file_handler(){}
 private:
+	bool url_decode(const std::string& in, std::string& out);
 	std::string docroot;
 };
+
+REGISTER_REQUEST_HANDLER(file_handler);
 
 }
 }

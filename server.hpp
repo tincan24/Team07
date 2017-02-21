@@ -7,10 +7,11 @@
 #include <boost/asio.hpp>
 #include <string>
 #include <boost/unordered_map.hpp>
-#include "reply.hpp"
+#include "response.hpp"
 #include "request.hpp"
 #include "request_parser.hpp"
 #include "config.h"
+#include "request_handler.hpp"
 
 namespace http {
 namespace server {
@@ -21,7 +22,8 @@ class server
 public:
   server(const server&) = delete;
   server& operator=(const server&) = delete;
-  explicit server(const std::string& address, const std::string& port, ServerConfig* config = nullptr);
+  explicit server(const std::string& address, const std::string& sconfig_path);
+  ~server();
   void run();
   
 private:
@@ -29,7 +31,11 @@ private:
   boost::asio::io_service io_service_;
   boost::asio::ip::tcp::acceptor acceptor_;
   boost::asio::ip::tcp::socket socket_;
+
+  void InitHandlers();
+
   ServerConfig* config;
+  boost::unordered_map<std::string, RequestHandler*> handlers_;
 };
 
 class connection
@@ -39,10 +45,9 @@ public:
   connection(const connection&) = delete;
   connection& operator=(const connection&) = delete;
   explicit connection(boost::asio::ip::tcp::socket socket);
-  //explicit connection(boost::asio::ip::tcp::socket socket, Path* paths);
   void start();
   void stop();
-  boost::unordered_map<std::string, Path*>* paths_;
+  boost::unordered_map<std::string, RequestHandler*>* handlers_;
 
 private:
   void do_read();
@@ -50,9 +55,8 @@ private:
 
   boost::asio::ip::tcp::socket socket_;
   std::array<char, 16384> buffer_;
-  reply reply_;
-  request request_;
-  request_parser request_parser_;
+  Response response_;
+  std::unique_ptr<Request> request_;
 
 };
 

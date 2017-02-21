@@ -9,7 +9,6 @@
 #include <boost/foreach.hpp>
 
 #include "config.h"
-#include "base_handler.hpp"
 
 const int DEFAULT_PORT = 80;
 
@@ -17,10 +16,10 @@ const char* PORT_TOKEN = "port";
 const char* PATH_TOKEN = "path";
 const char* FILE_HANDLER_ROOT_TOKEN = "root";
 
-ServerConfig::ServerConfig(const char* configFilePath) {
+ServerConfig::ServerConfig(const std::string& configFilePath) {
 	NginxConfigParser config_parser;
 	parsedConfig = new NginxConfig();
-	config_parser.Parse(configFilePath, parsedConfig);
+	config_parser.Parse(configFilePath.c_str(), parsedConfig);
 
 	ParseStatements();
 }
@@ -54,7 +53,7 @@ bool ServerConfig::ParseStatements() {
 }
 
 bool ServerConfig::ParseStatement(std::shared_ptr<NginxConfigStatement> statement, Path* lastPath) {
-	if(strcmp(statement->tokens_[0].c_str(), PORT_TOKEN) == 0)
+	if(statement->tokens_[0].compare(PORT_TOKEN) == 0)
 	{
 		int portNoRead = std::stoi(statement->tokens_[1]);
 		if(portNoRead > 0 && portNoRead <= 65535)
@@ -73,15 +72,18 @@ bool ServerConfig::ParseStatement(std::shared_ptr<NginxConfigStatement> statemen
 		paths[statement->tokens_[1]] = new_path;
 
 		if(statement->child_block_ != nullptr)
+		{
+			new_path->child_block_ = &(*statement->child_block_);
 			for (const auto& fileHandlerStatement : statement->child_block_->statements_) 
 				ParseStatement(fileHandlerStatement, new_path);
-		if(statement->tokens_[2].compare(http::server::FILE_HANDLER_NAME) == 0 && 
-		   (new_path->options.empty() ||  
-			new_path->options[FILE_HANDLER_ROOT_TOKEN] == nullptr))
-			throw InvalidConfigException("No doc_root path specified. File handler not useable.");
+
+			if(new_path->options.empty() || new_path->options[FILE_HANDLER_ROOT_TOKEN] == nullptr)
+				throw InvalidConfigException("No doc_root path specified. File handler not useable.");
+		}
+		
 		return true;
 	}
-	else if (strcmp(statement->tokens_[0].c_str(), FILE_HANDLER_ROOT_TOKEN) == 0)
+	else if (statement->tokens_[0].compare(FILE_HANDLER_ROOT_TOKEN) == 0)
 	{
 
 		PathOption* new_option = new PathOption(statement->tokens_[0], statement->tokens_[1]);
