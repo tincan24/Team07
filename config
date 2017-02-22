@@ -6,3 +6,6 @@ path /static1 file_handler {
 path /static2 file_handler {
   root files1;
 }
+default file_handler {
+root files;
+}

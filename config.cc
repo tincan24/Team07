@@ -15,6 +15,7 @@ const int DEFAULT_PORT = 80;
 const char* PORT_TOKEN = "port";
 const char* PATH_TOKEN = "path";
 const char* FILE_HANDLER_ROOT_TOKEN = "root";
+const char* DEFAULT_TOKEN = "default";
 
 ServerConfig::ServerConfig(const std::string& configFilePath) {
 	NginxConfigParser config_parser;
@@ -66,9 +67,28 @@ bool ServerConfig::ParseStatement(std::shared_ptr<NginxConfigStatement> statemen
 		}
 		return true;
 	} 
+	else if(statement->tokens_[0].compare(DEFAULT_TOKEN) == 0)
+	{
+		Path* new_path = new Path("", statement->tokens_[1]);
+		defaultpath = std::make_pair(statement->tokens_[1], new_path);
+		if(statement->child_block_ != nullptr)
+		{
+			new_path->child_block_ = &(*statement->child_block_);
+			for (const auto& fileHandlerStatement : statement->child_block_->statements_) 
+				ParseStatement(fileHandlerStatement, new_path);
+
+			if(new_path->options.empty() || new_path->options[FILE_HANDLER_ROOT_TOKEN] == nullptr)
+				throw InvalidConfigException("No doc_root path specified. File handler not useable.");
+		}
+		
+		return true;
+	}
 	else if(statement->tokens_[0].compare(PATH_TOKEN) == 0)
 	{
 		Path* new_path = new Path(statement->tokens_[1], statement->tokens_[2]);
+		if(paths.find(statement->tokens_[1]) != paths.end()) {
+			throw InvalidConfigException("Cannot re-specify mapping to " + statement->tokens_[1]);
+		}
 		paths[statement->tokens_[1]] = new_path;
 
 		if(statement->child_block_ != nullptr)
@@ -104,6 +124,10 @@ ServerConfig::~ServerConfig(){
 		}
 		delete(std::get<1>(path));
 	}
+}
+
+std::pair<std::string, Path*>& ServerConfig::GetDefault() {
+	return defaultpath;
 }
 
 std::string ServerConfig::ToString() {
