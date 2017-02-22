@@ -53,8 +53,13 @@ void connection::do_read() {
 	cur_prefix += pathIt->string();
 	
 	if((*handlers_)[cur_prefix] != nullptr)
+  {       
         	(*handlers_)[cur_prefix]->HandleRequest(*request_, &response_);
-
+  }
+  else 
+  {
+          (*handlers_)["default"]->HandleRequest(*request_, &response_);
+  }
 	delete(handler);
         do_write();
       });
@@ -114,6 +119,11 @@ void server::InitHandlers() {
   		handler->Init(path->token, *(path->child_block_));
 		handlers_[path->token] = handler;
 	}
+  Path* default_ = std::get<1>(config->GetDefault());
+  auto handler = RequestHandler::CreateByName(default_->handler_name);
+      handler->Init(default_->token, *(default_->child_block_));
+  handlers_["default"] = handler;
+
 }
 
 server::~server() {
