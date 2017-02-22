@@ -46,7 +46,7 @@ std::string StatusHandler::setBodyString() {
 	status_page += "</table><br>"; 
 	status_page += "<h2>Requests</h2>";
 	status_page += "<p>Number of Requests: " + std::to_string(numReq) + "</p>" ;
-	status_page += "<table><tr><th>Request URL</th><th>Response</th></tr>";
+	status_page += "<table><tr><th>URL Requested</th><th>Response Code</th></tr>";
 
 	for (auto request : url_requests) {
 		status_page += "<tr><td>" + request.first + "</td><td>"+ std::to_string(request.second) + "</td></tr>"; 

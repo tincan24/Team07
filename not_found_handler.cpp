@@ -14,13 +14,13 @@ RequestHandler::Status NotFoundHandler::HandleRequest(const Request &request, Re
   		"<body><h1>404 Not Found</h1></body>"
   		"</html>";
   	std::string body = text;
-	response->SetStatus(Response::ok);
+	response->SetStatus(Response::not_found);
 	response->SetBody(body); //.append(req.content, req.content+ req.bytes);
 
 	response->AddHeader("Content-Length", std::to_string(body.size()));
 	response->AddHeader("Content-Type", "text/html");
 
-	return RequestHandler::OK;
+	return RequestHandler::not_found;
 }
 
 
