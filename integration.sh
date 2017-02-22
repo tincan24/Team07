@@ -70,6 +70,40 @@ else
 	echo "File contents not Succesfully obtained";
 	exit 14
 fi
+
+
+# testing webserver default mapping
+echo "Running command curl -D headers.txt http://localhost:12345/web_sample1.html > response.txt"
+curl -D headers.txt http://localhost:12345/web_sample1.html > response.txt
+
+# checking reponse headers
+echo "Checking response Headers."
+if grep -q "HTTP/1.* 200 OK" headers.txt;then
+	if grep -q "Content-Type: text/html" headers.txt;then
+		#Checking if content-length is correct
+		count=`wc -c response.txt | awk '{print $1}'`
+		if grep -q "Content-Length: $count" headers.txt;then
+			echo "All response headers are correct."
+		else
+			echo "HTTP response does not contain correct Content-Length."
+			exit 12
+		fi
+	else
+		echo "HTTP response does not contain Content-Type or is not set to text/plain."
+		exit 11
+	fi
+else
+	echo "HTTP response does not contain 200 OK status code."
+	exit 10
+fi
+
+if grep -q "<link rel='canonical' href='http://www.sheldonbrown.com/web_sample1.html'/>" response.txt;then
+	echo "File Succesfully transferred"
+else
+	echo "File contents not Succesfully obtained";
+	exit 14
+fi
+
 # waiting for webserver to stop
 sleep 12
 
