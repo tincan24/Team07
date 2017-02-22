@@ -53,7 +53,9 @@ RequestHandler::Status file_handler::HandleRequest(const Request &request, Respo
 	boost::filesystem::path path{request.uri()};
 
 	//This is to start after the doc_root-specifying token - only with the file name
-	auto pathIt = ++(++(path.begin()));
+	auto pathIt = path.begin();
+	if(++(++path.begin())!=path.end())
+	pathIt = ++(++(path.begin()));
 	if(pathIt != path.end() && !path.filename().empty())
 	{
 		//TODO: check errors/long paths

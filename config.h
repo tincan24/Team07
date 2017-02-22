@@ -59,13 +59,16 @@ class ServerConfig {
 	bool ParseStatements();
 	bool ParseStatement(std::shared_ptr<NginxConfigStatement> statement, Path* lastPath = nullptr);
 	NginxConfig* parsedConfig;
+	std::pair<std::string, Path*> defaultpath;
 
  public:
 	ServerConfig(const std::string& configFilePath);
 	int GetPortNo();
 	std::string ToString();
 	~ServerConfig();
+	std::pair<std::string, Path*>& GetDefault();
 	boost::unordered_map<std::string, Path*>& GetPaths();
+
 };
 
 #endif //  CONFIG_H
