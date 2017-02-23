@@ -52,7 +52,7 @@ void connection::do_read() {
 	auto pathIt = path.end();
 	std::string cur_prefix = uri;
 
-	while((*handlers_)[cur_prefix] == nullptr && !cur_prefix.empty())
+	while((*handlers_)[cur_prefix] == nullptr && cur_prefix.compare("/")!=0)
 	{ 
 		--pathIt;
 		cur_prefix.erase(cur_prefix.end() - pathIt->string().length(), cur_prefix.end());

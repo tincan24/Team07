@@ -6,7 +6,7 @@
 
 TEST(ServerTesting, ConstructorCheck) {
 	try {
-		http::server::server server_("127.0.0.1", "123450");
+		http::server::server server_("127.0.0.1", "config");
 		
 	}
 	catch(boost::system::error_code &e) {
@@ -17,7 +17,7 @@ TEST(ServerTesting, ConstructorCheck) {
 
 TEST(ServerTesting, AddressCheck) {
 	try {
-		http::server::server server_("-5", "12345");	
+		http::server::server server_("-5", "config");	
 	}
 	catch(boost::system::error_code &e) {
 		EXPECT_EQ(e.message(), "Bad address");
@@ -27,7 +27,7 @@ TEST(ServerTesting, AddressCheck) {
 
 TEST(ConnectionTesting, InitializationAndConnectionTest) {
 	try {
-		http::server::server server_("127.0.0.1", "12345");	
+		http::server::server server_("127.0.0.1", "config");	
 	}
 	catch(boost::system::error_code &e) {
 		std::cout << e.message() << std::endl;
