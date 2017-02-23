@@ -10,6 +10,7 @@
 //TODO: check necessary
 #include "file_handler.hpp"
 #include "echo_handler.hpp"
+#include "server_stats.hpp"
 
 namespace http {
 namespace server {
@@ -45,7 +46,7 @@ void connection::do_read() {
         request_ = Request::Parse(buffer_.data());
         std::string uri = request_->uri();
         boost::filesystem::path path{uri};
-	RequestHandler* handler = nullptr;
+	//RequestHandler* handler = nullptr;
 
 	auto pathIt = path.begin();
 	auto cur_prefix = pathIt->string();
@@ -53,9 +54,15 @@ void connection::do_read() {
 	cur_prefix += pathIt->string();
 	
 	if((*handlers_)[cur_prefix] != nullptr)
-        	(*handlers_)[cur_prefix]->HandleRequest(*request_, &response_);
-
-	delete(handler);
+	{       
+		(*handlers_)[cur_prefix]->HandleRequest(*request_, &response_);
+		ServerStats::getInstance().insertRequest(cur_prefix, response_.getResponseCode());
+	}
+	else 
+	{
+		(*handlers_)["default"]->HandleRequest(*request_, &response_);
+		ServerStats::getInstance().insertRequest("default", response_.getResponseCode());
+	}
         do_write();
       });
 }
@@ -64,14 +71,14 @@ void connection::do_write() {
 	auto self(shared_from_this());
 
 	boost::asio::async_write(socket_, response_.to_buffers(),
-      [this, self](boost::system::error_code ec, std::size_t)
-      {
-        if (!ec)
-        {
-          boost::system::error_code ignored_ec;
-          stop();
-        }
-      });
+	[this, self](boost::system::error_code ec, std::size_t)
+	{
+		if (!ec)
+		{
+			boost::system::error_code ignored_ec;
+			stop();
+		}
+	});
 }
 
 
@@ -113,7 +120,16 @@ void server::InitHandlers() {
 		auto handler = RequestHandler::CreateByName(path->handler_name);
   		handler->Init(path->token, *(path->child_block_));
 		handlers_[path->token] = handler;
+
+		//inserting handler info to server stats (used for status handler)s
+		ServerStats::getInstance().insertHandler(path->token, path->handler_name);
 	}
+
+	Path* default_ = std::get<1>(config->GetDefault());
+	auto handler = RequestHandler::CreateByName(default_->handler_name);
+	handler->Init(default_->token, *(default_->child_block_));
+	handlers_["default"] = handler;
+	ServerStats::getInstance().insertHandler("default", default_->handler_name);
 }
 
 server::~server() {
