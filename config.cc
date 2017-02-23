@@ -94,8 +94,8 @@ bool ServerConfig::ParseStatement(std::shared_ptr<NginxConfigStatement> statemen
 			for (const auto& fileHandlerStatement : statement->child_block_->statements_) 
 				ParseStatement(fileHandlerStatement, new_path);
 
-			if(new_path->options.empty() || new_path->options[FILE_HANDLER_ROOT_TOKEN] == nullptr)
-				throw InvalidConfigException("No doc_root path specified. File handler not useable.");
+			//if(new_path->options.empty() || new_path->options[FILE_HANDLER_ROOT_TOKEN] == nullptr)
+			//	throw InvalidConfigException("No doc_root path specified. File handler not useable.");
 		}
 		
 		return true;
