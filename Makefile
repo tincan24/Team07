@@ -17,7 +17,7 @@ run:
 
 run_coverage:
 	./webserver_test
-	gcov -r server.cpp response.cpp config.cc config_parser.cc request_parser.cpp echo_handler.cpp file_handler.cpp request.cpp base_
+	gcov -r server.cpp response.cpp config.cc config_parser.cc request_parser.cpp echo_handler.cpp file_handler.cpp request.cpp not_found_handler.cpp status_handler.cpp server_stats.cpp base_
 
 webserver:
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(SRCFILES) -lboost_filesystem -lboost_system

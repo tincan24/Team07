@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "request.hpp"
-#include "reply.hpp"
+#include "response.hpp"
 #include "file_handler.hpp"
 #include <string>
 #include <limits.h>
@@ -16,31 +16,32 @@ std::string currdir()
 	return last;
 }
 
+
 TEST(SimpleRequestTest, Docroot) {
-	request req;
-	reply rep;
+	Request req;
+	Response resp;
 	req.uri="/test.txt";
-	file_handler(currdir()).HandleRequest(req, rep);
-	std::string test ="Just a test file to check webserver response in the Integration Test.\n";
-	EXPECT_EQ(rep.headers[0].name, "Content-Length");
-	EXPECT_EQ(rep.headers[0].value, std::to_string(test.length()));
-	EXPECT_EQ(rep.headers[1].name, "Content-Type");
-	EXPECT_EQ(rep.headers[1].value, "text/plain");
-	EXPECT_EQ(rep.content, test);
+	file_handler(currdir()).HandleRequest(req, resp);
+	std::string test = "Content-Length: " + std::to_string(test.length())) + "\r\n";
+	test += "Content-Type: text/plain\r\n";
+	test += "Just a test file to check webserver response in the Integration Test.\n";
+	EXPECT_EQ(rep.ToString(), test);
 }
 
 TEST(BadRequestTest, Docroot) {
-	request req;
-	reply rep;
+	Request req;
+	Response resp;
 	req.uri="abcd.txt";
-	file_handler(currdir()).HandleRequest(req, rep);
-	EXPECT_EQ(rep.status, 400);
+	file_handler(currdir()).HandleRequest(req, resp);
+	EXPECT_EQ(resp.getResponseCode(), 400);
 }
 
 TEST(FileNotFound, Docroot) {
-	request req;
-	reply rep;
+	Request req;
+	Response rep;
 	req.uri="/abcd.txt";
 	file_handler(currdir()).HandleRequest(req, rep);
-	EXPECT_EQ(rep.status, 404);
-}}}
+	EXPECT_EQ(resp.getResponseCode(), 404);
+}
+
+}}
