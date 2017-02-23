@@ -1,4 +1,5 @@
 #include "server_stats.hpp"
+#include <algorithm>
 
 namespace http {
 namespace server {
@@ -28,6 +29,11 @@ ServerStats::Requests ServerStats::getRequests() const {
 
 int ServerStats::getNumRequests() {
     return url_requests_.size();
+}
+
+void ServerStats::clearAllEntries() {
+	handlers_.clear();
+	url_requests_.clear();
 }
 
 }

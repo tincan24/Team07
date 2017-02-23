@@ -20,6 +20,7 @@ public:
     using Requests = std::vector<std::pair<std::string, Response::ResponseCode>>;
     Requests getRequests() const;
 
+    void clearAllEntries();
 
     ServerStats(ServerStats const&) = delete;
     void operator=(ServerStats const&) = delete;
