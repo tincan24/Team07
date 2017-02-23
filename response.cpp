@@ -41,6 +41,49 @@ const std::string bad_gateway =
 const std::string service_unavailable =
   "HTTP/1.1 503 Service Unavailable\r\n";
 
+std::string to_string(Response::ResponseCode rcode)
+{
+  switch (rcode)
+  {
+  case Response::ok:
+    return ok;
+  case Response::created:
+    return created;
+  case Response::accepted:
+    return accepted;
+  case Response::no_content:
+    return no_content;
+  case Response::multiple_choices:
+    return multiple_choices;
+  case Response::moved_permanently:
+    return moved_permanently;
+  case Response::moved_temporarily:
+    return moved_temporarily;
+  case Response::not_modified:
+    return not_modified;
+  case Response::bad_request:
+    return bad_request;
+  case Response::unauthorized:
+    return unauthorized;
+  case Response::forbidden:
+    return forbidden;
+  case Response::not_found:
+    return not_found;
+  case Response::internal_server_error:
+    return internal_server_error;
+  case Response::not_implemented:
+    return not_implemented;
+  case Response::bad_gateway:
+    return bad_gateway;
+  case Response::service_unavailable:
+    return service_unavailable;
+  default:
+    return internal_server_error;
+  }
+}
+
+
+
 boost::asio::const_buffer to_buffer(Response::ResponseCode rcode)
 {
   switch (rcode)
@@ -262,7 +305,8 @@ std::vector<boost::asio::const_buffer> Response::to_buffers()
 
 std::string Response::ToString()
 {
-  std::string resp = stock_responses::to_string(response_code);
+
+  std::string resp = status_strings::to_string(response_code);
   std::vector<header>::iterator it;
   for (it = headers.begin(); it != headers.end(); it++) {
     std::string header = it->name;
@@ -275,7 +319,8 @@ std::string Response::ToString()
       resp += header + ": " + header_val + "\r\n";
     }
   }
-  resp += "\r\n";
+  //resp += "\r\n";
+
   resp += content;
 
   return resp;

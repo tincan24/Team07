@@ -70,7 +70,6 @@ void connection::do_read() {
 		(*handlers_)["default"]->HandleRequest(*request_, &response_);
 		ServerStats::getInstance().insertRequest("default", response_.getResponseCode());
 	}
-
         do_write();
       });
 }

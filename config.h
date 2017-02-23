@@ -68,6 +68,7 @@ class ServerConfig {
 	~ServerConfig();
 	std::pair<std::string, Path*>& GetDefault();
 	boost::unordered_map<std::string, Path*>& GetPaths();
+
 };
 
 #endif //  CONFIG_H

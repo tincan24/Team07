@@ -30,5 +30,10 @@ int ServerStats::getNumRequests() {
     return url_requests_.size();
 }
 
+void ServerStats::clearAllEntries() {
+	handlers_.clear();
+	url_requests_.clear();
+}
+
 }
 }
