@@ -48,10 +48,9 @@ Our webserver comes with a Makefile with a few preconfigured build options that 
 
 1) make - compiles the webserver files.
 2) ./webserver - after compiling you can use this executable to run our server. Please be advised that this call must be followed by a config file of valid format. See our file labeled 'config' for an example of a valid format.
-3) make test - compiles all webserver files and runs all unit and integration tests, as well as scans for test converage of our code. 
+3) make test && make run_coverage - compiles all webserver files and runs all unit and integration tests, as well as scans for test converage of our code. 
 4) make clean - removes any intermediary compile related files and executables, cleaning up your directory.
 5) make run - compiles the webserver files, and then runs the webserver using our default configuration from the file 'config'.
-6) make run-coverage - compiles the webserver and does a coverage test, checking what percentage of our code is tested using unit tests.
 
 Once the server is up and running, it can be accessed through a browser, or via the command line with curl requests.
 
