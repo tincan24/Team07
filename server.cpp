@@ -2,14 +2,15 @@
 // and http://www.boost.org/doc/libs/1_62_0/doc/html/boost_asio/example/cpp11/http/server/connection.cpp
 
 #include <utility>
-#include <vector>
 #include <boost/filesystem.hpp>
 #include <string.h>
+#include <boost/foreach.hpp>
 
 #include "server.hpp"
+//TODO: check necessary
 #include "file_handler.hpp"
 #include "echo_handler.hpp"
-#include "base_handler.hpp"
+#include "server_stats.hpp"
 
 namespace http {
 namespace server {
@@ -17,19 +18,21 @@ namespace server {
 // HTTP RESPONSE/REQUEST WRITE/READ RELATED FUNCTIONS
 connection::connection(boost::asio::ip::tcp::socket socket): socket_(std::move(socket))
 {
-	paths_ = nullptr;
+	//paths_ = nullptr;
 }
 
 //connection::connection(boost::asio::ip::tcp::socket socket, Path* paths): socket_(std::move(socket)), paths_(paths)
 //{}
 
 void connection::start() {
-  try {
-    do_read();
-  }
-	catch(boost::system::error_code &e) {
-    throw e;
-  }
+	try 
+	{
+		do_read();
+	}
+	catch(boost::system::error_code &e) 
+	{
+		throw e;
+	}
 }
 
 void connection::stop() {
@@ -39,134 +42,114 @@ void connection::stop() {
 void connection::do_read() {
 	auto self(shared_from_this());
   socket_.async_read_some(boost::asio::buffer(buffer_),
+	//TODO: inline specification
       [this, self](boost::system::error_code ec, std::size_t bytes)
       {
-      	request_parser::result_type res;
-        std::tie(res, std::ignore) = request_parser_.parse(request_, buffer_.data(), buffer_.data() + bytes);
-        std::string uri = request_.uri;
-        boost::filesystem::path path_{uri};
-	base_handler* handler = nullptr;
+        request_ = Request::Parse(buffer_.data());
+        std::string uri = request_->uri();
+        boost::filesystem::path path{uri};
 
-	Path* next_path = paths_;
-	while(next_path != nullptr)
-	{
-		if((strcmp(next_path->token.c_str(), path_.parent_path().c_str()) == 0 &&
-		    next_path->options != nullptr) ||
-		   (strcmp(next_path->token.c_str(), path_.c_str()) == 0 && 
-		    next_path->options == nullptr))
-		{
-			PathOption* next_option = next_path->options;
-			std::string doc_root;
-			while(next_option != nullptr)
-			{
-				if(strcmp(next_option->token.c_str(), FILE_HANDLER_ROOT_TOKEN) == 0)
-				{
-					request_.uri = "/" + path_.filename().string();
-					doc_root += next_option->value;
-					break;
-				}
-				next_option = next_option->next_option;
-			}
-			handler = base_handler::make_handler(next_path->handler_name, doc_root);
-			break;
-		}
-		next_path = next_path->next_path;
+	auto pathIt = path.end();
+	std::string cur_prefix = uri;
+
+	while((*handlers_)[cur_prefix] == nullptr && cur_prefix.compare("/")!=0)
+	{ 
+		--pathIt;
+		cur_prefix.erase(cur_prefix.end() - pathIt->string().length(), cur_prefix.end());
+		if((*handlers_)[cur_prefix] == nullptr)
+			cur_prefix.erase(cur_prefix.end() - 1, cur_prefix.end());
 	}
-
-	if(handler != nullptr)
-        	handler->handle_request(request_, reply_);
+	
+	if((*handlers_)[cur_prefix] != nullptr)
+	{       
+		(*handlers_)[cur_prefix]->HandleRequest(*request_, &response_);
+		ServerStats::getInstance().insertRequest(cur_prefix, response_.getResponseCode());
+	}
+	else 
+	{
+		(*handlers_)["default"]->HandleRequest(*request_, &response_);
+		ServerStats::getInstance().insertRequest("default", response_.getResponseCode());
+	}
         do_write();
-	delete(handler);
-
-        //boost::filesystem::path path1_{config.getPaths()[0].token};
-        //boost::filesystem::path path2_{config.getPaths()[1].token};
-        //std::cout << "rootPath is " << path_.parent_path()<< std::endl;
-        //std::string doc_root;
-        //std::string filename = "/" + path_.filename().string();
-        //std::cout << "filename is " << filename << std::endl;
-
-
-        /*int echo = 0;
-        if (uri == "/echo") {
-          echo = 1;
-        } else if (path_.parent_path() == path1_) {
-          doc_root = "files";
-        } else if (path_.parent_path() == path2_) {
-          doc_root = "files2";
-        }*/
-
-        /*if (echo) {
-          echo_handler echo_handler_;
-	  echo_handler_.handle_request(request_, reply_);
-        }
-        else {
-          request_.uri = filename;
-
-          file_handler file_handler_(doc_root);
-          file_handler_.handle_request(request_, reply_);
-        }*/
-
-
-        //reply_.content.append(buffer_.data(), buffer_.data() + bytes);
-      	//if (reply_.content.substr(reply_.content.size() - 4, 4) == "\r\n\r\n" )
-      	//	do_write();
-      	//else
-      	//	do_read();
       });
 }
 
 void connection::do_write() {
 	auto self(shared_from_this());
 
-	boost::asio::async_write(socket_, reply_.to_buffers(),
-      [this, self](boost::system::error_code ec, std::size_t)
-      {
-        if (!ec)
-        {
-          boost::system::error_code ignored_ec;
-          stop();
-        }
-      });
+	boost::asio::async_write(socket_, response_.to_buffers(),
+	[this, self](boost::system::error_code ec, std::size_t)
+	{
+		if (!ec)
+		{
+			boost::system::error_code ignored_ec;
+			stop();
+		}
+	});
 }
 
 
 // SERVER CONNECTION RELATED FUNCTIONS
 
-server::server(const std::string& address, const std::string& port, ServerConfig* sconfig)
+server::server(const std::string& address, const std::string& sconfig_path)
   : io_service_(),
     acceptor_(io_service_),
-  socket_(io_service_),
-  config(sconfig) {
+  socket_(io_service_){
 
-  int addressNoRead = std::stoi(address);
-  if (addressNoRead < 0) {
-    throw boost::system::errc::make_error_code(boost::system::errc::bad_address);
-  }
-    
-  boost::asio::ip::tcp::resolver resolver(io_service_);
-  boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve({address, port});
-  acceptor_.open(endpoint.protocol());
-  acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-  acceptor_.bind(endpoint);
-  acceptor_.listen();
+	config = new ServerConfig(sconfig_path);
 
-  do_accept();
+	int addressNoRead = std::stoi(address);
+	if (addressNoRead < 0) {
+		throw boost::system::errc::make_error_code(boost::system::errc::bad_address);
+	}
 
-  int portNoRead = std::stoi(port);
-  if (portNoRead <= 0 || portNoRead > 65535) {
-    throw boost::system::errc::make_error_code(boost::system::errc::argument_out_of_domain);
-  }
-  
+	int port = config->GetPortNo();
+	if (port <= 0 || port > 65535) {
+		throw boost::system::errc::make_error_code(boost::system::errc::argument_out_of_domain);
+	}
+
+	InitHandlers();
+
+	boost::asio::ip::tcp::resolver resolver(io_service_);
+	boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve({address, std::to_string(port)});
+	acceptor_.open(endpoint.protocol());
+	acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+	acceptor_.bind(endpoint);
+	acceptor_.listen();
+
+	do_accept();
+}
+
+void server::InitHandlers() {
+	BOOST_FOREACH(auto path_element, config->GetPaths()) 
+	{
+		Path* path = std::get<1>(path_element);
+		auto handler = RequestHandler::CreateByName(path->handler_name);
+  		handler->Init(path->token, *(path->child_block_));
+		handlers_[path->token] = handler;
+
+		//inserting handler info to server stats (used for status handler)s
+		ServerStats::getInstance().insertHandler(path->token, path->handler_name);
+	}
+
+	Path* default_ = std::get<1>(config->GetDefault());
+	auto handler = RequestHandler::CreateByName(default_->handler_name);
+	handler->Init(default_->token, *(default_->child_block_));
+	handlers_["default"] = handler;
+	ServerStats::getInstance().insertHandler("default", default_->handler_name);
+}
+
+server::~server() {
+	delete(config);
 }
 
 void server::run() {
-  try {
-    io_service_.run();
-  }
-  catch(boost::system::error_code const &e) {
-    throw e;
-  }
-	
+	try {
+		io_service_.run();
+	}
+	catch(boost::system::error_code const &e) {
+		throw e;
+	}
 }
 
 void server::do_accept() {
@@ -184,7 +167,7 @@ void server::do_accept() {
 	  if(config != nullptr)
 	  {
           	std::shared_ptr<connection> con = std::make_shared<connection>(std::move(socket_));
-		con->paths_ = config->GetPaths();
+		con->handlers_ = &handlers_;
 		con->start();
 	  }
         } else if (ec) {

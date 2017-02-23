@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <boost/unordered_map.hpp>
 
 #include "config_parser.h"
 
@@ -34,7 +35,6 @@ struct PathOption{
 
 	std::string token;
 	std::string value;
-	PathOption* next_option;
 };
 
 struct Path{
@@ -43,28 +43,32 @@ struct Path{
 
 	std::string token;
 	std::string handler_name;
-	PathOption* options;
-	Path* next_path;
+	boost::unordered_map<std::string, PathOption*> options;
+
+	NginxConfig* child_block_;
 };
+
+//TODO: check for duplicate paths and match longest path
 
 
 // The in-memory representation of the entire config.
 class ServerConfig {
  private:
 	int portNo;
-	Path* paths;
+	boost::unordered_map<std::string, Path*> paths;
 	bool ParseStatements();
 	bool ParseStatement(std::shared_ptr<NginxConfigStatement> statement, Path* lastPath = nullptr);
-	Path* getLastPath();
-	PathOption* getLastPathOption(Path* path);
 	NginxConfig* parsedConfig;
+	std::pair<std::string, Path*> defaultpath;
 
  public:
-	ServerConfig(const char* configFilePath);
+	ServerConfig(const std::string& configFilePath);
 	int GetPortNo();
 	std::string ToString();
 	~ServerConfig();
-	Path* GetPaths();
+	std::pair<std::string, Path*>& GetDefault();
+	boost::unordered_map<std::string, Path*>& GetPaths();
+
 };
 
 #endif //  CONFIG_H
