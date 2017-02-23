@@ -11,14 +11,14 @@ namespace server {
 
 TEST(EchoTest, SimpleEcho) {
 	NginxConfig config;
-	Request req;
 	Response resp;
-	req.Parse("GET / HTTP/1.1\nHost: localhost:12345\n");
+	std::unique_ptr<Request> req = Request::Parse("GET / HTTP/1.1\r\n\r\n");
+	Request r = *req;
 	echo_handler *echo_handler_ = new echo_handler();
 	echo_handler_->Init("", config);
-	echo_handler_->HandleRequest(req, &resp);
+	echo_handler_->HandleRequest(r, &resp);
 	EXPECT_EQ(resp.getResponseCode(), 200);
-	EXPECT_EQ(resp.getContent(), req.body());
+	EXPECT_EQ(resp.getContent(), r.body());
 }
 
 }
