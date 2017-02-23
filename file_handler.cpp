@@ -49,11 +49,12 @@ bool file_handler::url_decode(const std::string& in, std::string& out)
 }
 
 RequestHandler::Status file_handler::HandleRequest(const Request &request, Response* response){
-	std::string encoded_request_path;        
-	boost::filesystem::path path{request.uri()};
+	std::string encoded_request_path = request.uri();   
+	encoded_request_path.erase(encoded_request_path.begin(), encoded_request_path.begin() + uri_prefix_.length());   
+	//boost::filesystem::path path{request.uri()};
 
 	//This is to start after the doc_root-specifying token - only with the file name
-	auto pathIt = path.begin();
+	/*auto pathIt = path.begin();
 	if(++(++path.begin())!=path.end())
 	pathIt = ++(++(path.begin()));
 	if(pathIt != path.end() && !path.filename().empty())
@@ -66,7 +67,7 @@ RequestHandler::Status file_handler::HandleRequest(const Request &request, Respo
 				encoded_request_path += "/" + pathIt->string();
 			++pathIt;
 		}
-	}
+	}*/
 
 	std::string request_path;
 
@@ -150,6 +151,7 @@ RequestHandler::Status file_handler::Init(const std::string& uri_prefix, const N
 			if (statement->tokens_[0].compare(FILE_HANDLER_ROOT_TOKEN) == 0)
 				docroot = statement->tokens_[1];
 	}
+
 	if(!docroot.empty())
 		return RequestHandler::OK;
 	else

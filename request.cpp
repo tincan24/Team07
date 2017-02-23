@@ -1,6 +1,6 @@
 #include "request.hpp"
 
-#include <string.h>
+#include <cstring>
 
 namespace http {
 namespace server {
@@ -10,8 +10,7 @@ namespace server {
 std::unique_ptr<Request> Request::Parse(const std::string& raw_request)
 {
 	std::array<char, 16384ul> raw_request_;
-	strncpy(raw_request_.data(), raw_request.c_str(), raw_request.size());
-	raw_request_[raw_request.size() - 1] = 0;
+	std::memcpy(raw_request_.data(), raw_request.c_str(), raw_request.size());
 
 	//TODO: check for request_parser errors
 	request_parser request_parser_;

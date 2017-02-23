@@ -25,12 +25,14 @@ connection::connection(boost::asio::ip::tcp::socket socket): socket_(std::move(s
 //{}
 
 void connection::start() {
-  try {
-    do_read();
-  }
-	catch(boost::system::error_code &e) {
-    throw e;
-  }
+	try 
+	{
+		do_read();
+	}
+	catch(boost::system::error_code &e) 
+	{
+		throw e;
+	}
 }
 
 void connection::stop() {
@@ -46,12 +48,17 @@ void connection::do_read() {
         request_ = Request::Parse(buffer_.data());
         std::string uri = request_->uri();
         boost::filesystem::path path{uri};
-	//RequestHandler* handler = nullptr;
 
-	auto pathIt = path.begin();
-	auto cur_prefix = pathIt->string();
-	++pathIt;
-	cur_prefix += pathIt->string();
+	auto pathIt = path.end();
+	std::string cur_prefix = uri;
+
+	while((*handlers_)[cur_prefix] == nullptr && !cur_prefix.empty())
+	{ 
+		--pathIt;
+		cur_prefix.erase(cur_prefix.end() - pathIt->string().length(), cur_prefix.end());
+		if((*handlers_)[cur_prefix] == nullptr)
+			cur_prefix.erase(cur_prefix.end() - 1, cur_prefix.end());
+	}
 	
 	if((*handlers_)[cur_prefix] != nullptr)
 	{       
@@ -63,6 +70,7 @@ void connection::do_read() {
 		(*handlers_)["default"]->HandleRequest(*request_, &response_);
 		ServerStats::getInstance().insertRequest("default", response_.getResponseCode());
 	}
+
         do_write();
       });
 }
@@ -133,17 +141,16 @@ void server::InitHandlers() {
 }
 
 server::~server() {
-  delete(config);
+	delete(config);
 }
 
 void server::run() {
-  try {
-    io_service_.run();
-  }
-  catch(boost::system::error_code const &e) {
-    throw e;
-  }
-	
+	try {
+		io_service_.run();
+	}
+	catch(boost::system::error_code const &e) {
+		throw e;
+	}
 }
 
 void server::do_accept() {

@@ -76,9 +76,6 @@ bool ServerConfig::ParseStatement(std::shared_ptr<NginxConfigStatement> statemen
 			new_path->child_block_ = &(*statement->child_block_);
 			for (const auto& fileHandlerStatement : statement->child_block_->statements_) 
 				ParseStatement(fileHandlerStatement, new_path);
-
-			if(new_path->options.empty() || new_path->options[FILE_HANDLER_ROOT_TOKEN] == nullptr)
-				throw InvalidConfigException("No doc_root path specified. File handler not useable.");
 		}
 		
 		return true;
@@ -99,8 +96,6 @@ bool ServerConfig::ParseStatement(std::shared_ptr<NginxConfigStatement> statemen
 
 			if(new_path->options.empty() || new_path->options[FILE_HANDLER_ROOT_TOKEN] == nullptr)
 				throw InvalidConfigException("No doc_root path specified. File handler not useable.");
-
-			
 		}
 		
 		return true;
@@ -131,10 +126,11 @@ std::pair<std::string, Path*>& ServerConfig::GetDefault() {
 	return defaultpath;
 }
 
+//TODO:update ToString()
 std::string ServerConfig::ToString() {
-  std::string config_output;
-  config_output.append("Server is running on Port: ");
-  config_output.append(std::to_string(GetPortNo()));
+	std::string config_output;
+	config_output.append("Server is running on Port: ");
+	config_output.append(std::to_string(GetPortNo()));
 
-  return config_output;
+	return config_output;
 }
