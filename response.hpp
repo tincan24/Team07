@@ -46,6 +46,10 @@ public:
 	static Response stock_response(ResponseCode rcode);
 	ResponseCode getResponseCode() { return response_code; }
 
+	ResponseCode getResponseCode() { return response_code; }
+	std::string getBody() { return content; }
+	std::vector<header> getHeaders() { return headers; }
+
 	std::string ToString();
 
 private:

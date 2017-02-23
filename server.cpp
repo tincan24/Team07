@@ -71,14 +71,14 @@ void connection::do_write() {
 	auto self(shared_from_this());
 
 	boost::asio::async_write(socket_, response_.to_buffers(),
-      [this, self](boost::system::error_code ec, std::size_t)
-      {
-        if (!ec)
-        {
-          boost::system::error_code ignored_ec;
-          stop();
-        }
-      });
+	[this, self](boost::system::error_code ec, std::size_t)
+	{
+		if (!ec)
+		{
+			boost::system::error_code ignored_ec;
+			stop();
+		}
+	});
 }
 
 
@@ -121,15 +121,15 @@ void server::InitHandlers() {
   		handler->Init(path->token, *(path->child_block_));
 		handlers_[path->token] = handler;
 
-    //inserting handler info to server stats (used for status handler)s
-    ServerStats::getInstance().insertHandler(path->token, path->handler_name);
+		//inserting handler info to server stats (used for status handler)s
+		ServerStats::getInstance().insertHandler(path->token, path->handler_name);
 	}
-  Path* default_ = std::get<1>(config->GetDefault());
-  auto handler = RequestHandler::CreateByName(default_->handler_name);
-      handler->Init(default_->token, *(default_->child_block_));
-  handlers_["default"] = handler;
-  ServerStats::getInstance().insertHandler("default", default_->handler_name);
 
+	Path* default_ = std::get<1>(config->GetDefault());
+	auto handler = RequestHandler::CreateByName(default_->handler_name);
+	handler->Init(default_->token, *(default_->child_block_));
+	handlers_["default"] = handler;
+	ServerStats::getInstance().insertHandler("default", default_->handler_name);
 }
 
 server::~server() {

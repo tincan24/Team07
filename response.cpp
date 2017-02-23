@@ -82,6 +82,8 @@ std::string to_string(Response::ResponseCode rcode)
   }
 }
 
+
+
 boost::asio::const_buffer to_buffer(Response::ResponseCode rcode)
 {
   switch (rcode)
@@ -303,6 +305,7 @@ std::vector<boost::asio::const_buffer> Response::to_buffers()
 
 std::string Response::ToString()
 {
+
   std::string resp = status_strings::to_string(response_code);
   std::vector<header>::iterator it;
   for (it = headers.begin(); it != headers.end(); it++) {
@@ -317,6 +320,7 @@ std::string Response::ToString()
     }
   }
   //resp += "\r\n";
+
   resp += content;
 
   return resp;

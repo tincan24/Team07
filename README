@@ -1,5 +1,76 @@
-Parser for nginx config files.
+Welcome to our Simple Robust Webserver!
+- Anant Mahajan, Gabriel Pawlowsky, Nikhil Shridhar
 
-Includes code from googletest-1.7.0. See https://code.google.com/p/googletest/
 
-Inspired by https://github.com/fatiherikli/nginxparser
+What is this project?
+- It's a simple webserver that has configurable parameters that are fed in via and Nginx-like config file. Currently, the server can handle file and echo requests.
+
+
+Code Layout and Design? What's where?
+
+Server Functionality:
+
+1) Our server functionality can be found in the file server.cpp. In this file, we have two classes, Server and Connection. As their names suggest, 
+a) The Server class handles set up of the server, including using our config parser to parse the given config and then setting up the server on the appropriate port, socket, etc, and then scans for any incoming connections.
+b) Once a connection is accepted, the connection class reads the request, and obtains a formatted version via a call to the request parser. It then invokes the required request handler, and handles writing to the socket for the current connection. More information about the request parser and connection handlers can be found below.
+
+2) The request parser can be found in request.cpp, and is inspired from Boost documentation. More information can be found here: http://www.boost.org/doc/libs/1_60_0/doc/html/boost_asio/example/cpp03/http/server/request_parser.cpp
+
+3) Now, we have a few different types of request handlers.
+a) 404 handler - When our webserver detects a request that cannot be found on our server, we use a 404 handler to return an appropriate response.
+b) echo handler - When the user decides to access the echo functionality of our server (using server/echo), our echo handler is invoked which simply echos the request received.
+c) file handler- When a client requests a file, from one of our preset paths, this handler is invoked to serve the appropriate file.
+Our handlers can be found in file_handler.cpp, echo_handler.cpp and 404_handler.cpp.
+d) status handler - When a client requests the status of our server, this handler serves the types of handlers present in our server and their usage since the starting of the server.
+
+4) Lastly, to make the functionality of the above classes a little easier, we have two helpful data structure classes that we use named Request and Response, which are based off Boost's Request and Reply structures. As their name suggests, they hold information about the requests and responses used in the server. These structures form convenient ways to format and store request and response parameters, and examples of their usage can be seen in the connection class, as well as in our conenction handlers.
+
+
+Config Parsing:
+
+1) A majority of our parsing takes place in the file config_parser.cc, which is inspired by https://github.com/fatiherikli/nginxparser. This parses our files into tokens and statements.
+
+2) Secondary parsing to evaluate the content of the file takes place in the file config.cc, which reads the port number to create the server on, as well as any path mappings specified in the config file.
+
+
+Testing Requirements:
+
+1) We have gtest functionality available in testing files thanks to to googletest subdirectory available on this repo. (Includes code from googletest-1.7.0. See https://code.google.com/p/googletest/)
+
+2) Each .cpp or .cc file has (or should have) a unit test file labeled file_name_test.cpp. Please let us know if you find a file without a corresponding test file so we can update this!
+
+3) We have an integration test in the form of a shell script called integration.sh, that needs to be updated when new functionality is added. Please update this file if you choose to contribute to our project. 
+
+
+Build and Usage Instructions
+
+Our webserver comes with a Makefile with a few preconfigured build options that we think are useful.
+
+1) make - compiles the webserver files.
+2) ./webserver - after compiling you can use this executable to run our server. Please be advised that this call must be followed by a config file of valid format. See our file labeled 'config' for an example of a valid format.
+3) make test - compiles all webserver files and runs all unit and integration tests, as well as scans for test converage of our code. 
+4) make clean - removes any intermediary compile related files and executables, cleaning up your directory.
+5) make run - compiles the webserver files, and then runs the webserver using our default configuration from the file 'config'.
+6) make run-coverage - compiles the webserver and does a coverage test, checking what percentage of our code is tested using unit tests.
+
+Once the server is up and running, it can be accessed through a browser, or via the command line with curl requests.
+
+
+How to contribute to our project?
+
+1) Fork our repo. 
+
+2) Make any changes that you feel are necessary or a good addition to our server.
+
+3) If your changes included the creation of new files, please write unit tests in a new file that has the name file_name_test.cpp, where file_name is your newly created file.
+
+4) Update our Integration test at integration.sh if your update changes any user-side functionality.
+
+5) Add your changed files to our makefile, and run the server. Also test it to make sure your unit tests are passing.
+
+6) Create a pull request, and we'll review your code. If we think it's a useful addition, we'll add it to our code and credit you on this README doc!
+
+7) If you have any questions regarding functionality, please email mahajananant@gmail.com (I'll typically respond within a day or two). 
+
+
+Thanks for checking us out, and I hope you contribute to our project!

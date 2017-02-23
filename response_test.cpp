@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "response.hpp"
 
+
 TEST(ResponseTest, StatusCheck) {
     http::server::Response resp_;
     resp_.SetStatus(http::server::Response::ok);
@@ -21,6 +22,7 @@ TEST(ResponseTest, HeaderStruct) {
 	body += "Test content";
 
 	EXPECT_EQ(resp_.ToString(), body);
+
 }
 
 TEST(ResponseTest, HeaderVector) {
@@ -32,6 +34,7 @@ TEST(ResponseTest, HeaderVector) {
 	head_.value = std::to_string(12);
 	resp_.AddHeader(head_.name, head_.value);
 
+
 	head_.name = "Content-Type";
 	head_.value = "text/plain";
 	resp_.AddHeader(head_.name, head_.value);
@@ -41,6 +44,7 @@ TEST(ResponseTest, HeaderVector) {
 	body += "Content-Type: text/plain\r\n";
 	body += "Test content";
 	EXPECT_EQ(resp_.ToString(), body);
+
 }
 
 class ResponseHeaderTest : public ::testing::Test {

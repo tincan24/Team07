@@ -1,5 +1,4 @@
 #include "server_stats.hpp"
-#include <algorithm>
 
 namespace http {
 namespace server {

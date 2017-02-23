@@ -79,8 +79,6 @@ bool ServerConfig::ParseStatement(std::shared_ptr<NginxConfigStatement> statemen
 
 			if(new_path->options.empty() || new_path->options[FILE_HANDLER_ROOT_TOKEN] == nullptr)
 				throw InvalidConfigException("No doc_root path specified. File handler not useable.");
-
-			
 		}
 		
 		return true;
@@ -109,7 +107,6 @@ bool ServerConfig::ParseStatement(std::shared_ptr<NginxConfigStatement> statemen
 	}
 	else if (statement->tokens_[0].compare(FILE_HANDLER_ROOT_TOKEN) == 0)
 	{
-
 		PathOption* new_option = new PathOption(statement->tokens_[0], statement->tokens_[1]);
 		lastPath->options[statement->tokens_[0]] = new_option;
 	}
