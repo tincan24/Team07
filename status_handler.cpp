@@ -30,8 +30,8 @@ RequestHandler::Status StatusHandler::Init(const std::string& uri_prefix, const 
 //sets body of string used for response->SetBody()
 std::string StatusHandler::setBodyString() {
 	int numReq = ServerStats::getInstance().getNumRequests();
-	ServerStats::Handlers handlers = ServerStats::getInstance().getHandlers();
-	ServerStats::Requests url_requests = ServerStats::getInstance().getRequests();
+	std::vector<std::pair<std::string, std::string>> handlers = ServerStats::getInstance().getHandlers();
+	std::vector<std::pair<std::string, Response::ResponseCode>> requests = ServerStats::getInstance().getRequests();
 
 	std::string status_page = "<html>";
 	status_page += "<head><title>Status Page</title></head>";
@@ -39,8 +39,8 @@ std::string StatusHandler::setBodyString() {
 	status_page += "<h2>Handlers</h2>";
 	status_page += "<table><tr><th>URL Prefix</th><th>Handler</th></tr>";
 	
-	for (auto handler : handlers) {
-		status_page += "<tr><td>" + handler.first + "</td><td>"+ handler.second + "</td></tr>"; 
+	for (unsigned int i = 0; i < handlers.size(); i++) {
+		status_page += "<tr><td>" + handlers[i].first + "</td><td>"+ handlers[i].second + "</td></tr>"; 
 	}
 
 	status_page += "</table><br>"; 
@@ -48,8 +48,8 @@ std::string StatusHandler::setBodyString() {
 	status_page += "<p>Number of Requests: " + std::to_string(numReq) + "</p>" ;
 	status_page += "<table><tr><th>URL Requested</th><th>Response Code</th></tr>";
 
-	for (auto request : url_requests) {
-		status_page += "<tr><td>" + request.first + "</td><td>"+ std::to_string(request.second) + "</td></tr>"; 
+	for (unsigned int i = 0; i < requests.size(); i++) {
+		status_page += "<tr><td>" + requests[i].first + "</td><td>"+ std::to_string(requests[i].second) + "</td></tr>"; 
 	}
 
 	status_page += "</table></html>";

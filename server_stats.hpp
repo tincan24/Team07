@@ -13,23 +13,16 @@ public:
     void insertHandler(const std::string& prefix, const std::string& handler_name);
     void insertRequest(const std::string& url, Response::ResponseCode response);
     int getNumRequests();
-
-    using Handlers = std::vector<std::pair<std::string, std::string>>;
-    Handlers getHandlers() const;
-
-    using Requests = std::vector<std::pair<std::string, Response::ResponseCode>>;
-    Requests getRequests() const;
-
     void clearAllEntries();
 
-    ServerStats(ServerStats const&) = delete;
-    void operator=(ServerStats const&) = delete;
+    std::vector<std::pair<std::string, std::string>> getHandlers() const;
+    std::vector<std::pair<std::string, Response::ResponseCode>> getRequests() const;
 
 private:
     ServerStats() {} 
 
     std::vector<std::pair<std::string, std::string>> handlers_;        
-    std::vector<std::pair<std::string, Response::ResponseCode>> url_requests_;
+    std::vector<std::pair<std::string, Response::ResponseCode>> requests_;
         
 };
 
