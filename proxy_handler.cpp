@@ -47,14 +47,14 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request &request, Respo
 Response::ResponseCode ProxyHandler::RedirectRequest(std::string& location, const std::string& uri, Response* response) {
     boost::asio::io_service io_service;
     tcp::resolver resolver(io_service);
-    std::cout << location << std::endl;
+    //std::cout << location << std::endl;
     tcp::resolver::query query(location, "http");
     tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
 
     tcp::socket socket(io_service);
     boost::asio::connect(socket, endpoint_iterator);
     
-    std::cout << uri << "- uri\n";
+    //std::cout << uri << "- uri\n";
     std::string req = "GET " + uri + " HTTP/1.1\r\nHost: " + location + "\r\nAccept: */*\r\nConnection: close\r\n\r\n";
     boost::asio::write(socket, boost::asio::buffer(req, req.size()));
 
@@ -128,7 +128,7 @@ Response::ResponseCode ProxyHandler::RedirectRequest(std::string& location, cons
     //response->AddHeader("Content-Location", "/proxy/index.html");
     response->SetStatus(Response::ok);
     //response->SetBody(response_body);
-    std::cout << response->ToString() << "\n";
+    //std::cout << response->ToString() << "\n";
     return Response::ResponseCode::ok;
 }
 

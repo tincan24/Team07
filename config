@@ -13,5 +13,5 @@ path /status StatusHandler {}
 default NotFoundHandler {}
 
 path /proxy ProxyHandler {
-    root www.google.com;
+    root tincan24.github.io;
 }

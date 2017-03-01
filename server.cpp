@@ -62,8 +62,10 @@ void connection::do_read() {
 	
     for (auto pair : request_->headers()) {
         if (pair.first == "Referer") {
+            std::cout << cur_prefix << " -> ";
             auto ref_uri = pair.second.find_last_of("/");
-            cur_prefix = pair.second.substr(ref_uri + 1);
+            cur_prefix = pair.second.substr(ref_uri);
+            std::cout << cur_prefix << "\n";
         }
     }
 
