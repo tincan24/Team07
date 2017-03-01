@@ -60,12 +60,11 @@ void connection::do_read() {
 			cur_prefix.erase(cur_prefix.end() - 1, cur_prefix.end());
 	}
 	
+    // assign request to proxy handler if referer field exists
     for (auto pair : request_->headers()) {
         if (pair.first == "Referer") {
-            std::cout << cur_prefix << " -> ";
             auto ref_uri = pair.second.find_last_of("/");
             cur_prefix = pair.second.substr(ref_uri);
-            std::cout << cur_prefix << "\n";
         }
     }
 
