@@ -261,6 +261,10 @@ void Response::SetStatus(const ResponseCode response_code)
 	this->response_code = response_code;
 }
 
+void Response::SetStatus(const unsigned int& status_code, const std::string& status_message) {
+  
+}
+
 void Response::AddHeader(const std::string& header_name, const std::string& header_value)
 {
 	header head;

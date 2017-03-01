@@ -34,6 +34,7 @@ public:
 	};
 
 	void SetStatus(const ResponseCode response_code);
+	void SetStatus(const unsigned int& status_code, const std::string& status_message);
 	void AddHeader(const std::string& header_name, const std::string& header_value);
 	void SetBody(const std::string& body);
 

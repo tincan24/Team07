@@ -33,14 +33,13 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix, const N
 RequestHandler::Status ProxyHandler::HandleRequest(const Request &request, Response* response) {
     std::string location = location_;
     
-    for(;;) {
+    // Continue redirecting until status code other than 302
+    while (true) {
         std::string request_uri = request.uri() == uri_prefix_ ? "/" : request.uri();
         Response::ResponseCode response_code = RedirectRequest(location, request_uri, response);
-        //TODO: change return not found
-        if (response_code == Response::ResponseCode::internal_server_error)
-            return RequestHandler::not_found;
-        else if (response_code == Response::ResponseCode::ok)
-            return RequestHandler::OK;
+        if (response_code != Response::ResponseCode::moved_temporarily) {
+            break;
+        }
     }
     return RequestHandler::OK;
 }
@@ -63,13 +62,15 @@ Response::ResponseCode ProxyHandler::RedirectRequest(std::string& location, cons
     
     std::istream response_stream(&resp);
     std::string http_version;
-    response_stream >> http_version;
     unsigned int status_code;
-    response_stream >> status_code;
     std::string status_message;
+    
+    response_stream >> http_version;
+    response_stream >> status_code;
     std::getline(response_stream, status_message);
     if (!response_stream || http_version.substr(0, 5) != "HTTP/") {
         std::cout << "Invalid response\n";
+        response->SetStatus(Response::ResponseCode::internal_server_error);
         return Response::ResponseCode::internal_server_error;
     }
 
@@ -82,17 +83,11 @@ Response::ResponseCode ProxyHandler::RedirectRequest(std::string& location, cons
         size_t colon_pos = header.find(":");
         std::string key = header.substr(0, colon_pos);
         std::string value = header.substr(colon_pos + 2);
-        response->AddHeader(key, value);
-        
         if (status_code == 302 && key == "Location") {
             location = value;
             return Response::ResponseCode::moved_temporarily;
         }
-    }
-
-    if (status_code != 200) {
-        std::cout << "Response returned with status code " << status_code << "\n";
-        return Response::ResponseCode::internal_server_error;
+        response->AddHeader(key, value);
     }
 
     // Read until EOF, writing data to output as we go.
