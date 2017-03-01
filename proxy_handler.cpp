@@ -21,7 +21,7 @@ ProxyHandler::ProxyHandler() {}
 ProxyHandler::~ProxyHandler() {}
 
 RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix, const NginxConfig& config) {
-    (void) uri_prefix;
+    uri_prefix_ = uri_prefix;
 
     if (config.statements_.size() == 0)
         return RequestHandler::not_found;
@@ -32,9 +32,9 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix, const N
 
 RequestHandler::Status ProxyHandler::HandleRequest(const Request &request, Response* response) {
     std::string location = location_;
-
+    
     for(;;) {
-        Response::ResponseCode response_code = RedirectRequest(location, response);
+        Response::ResponseCode response_code = RedirectRequest(location, request.uri() == uri_prefix_ ? "/" : request.uri(), response);
         //TODO: change return not found
         if (response_code == Response::ResponseCode::internal_server_error)
             return RequestHandler::not_found;
@@ -44,7 +44,7 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request &request, Respo
     return RequestHandler::OK;
 }
 
-Response::ResponseCode ProxyHandler::RedirectRequest(std::string& location, Response* response) {
+Response::ResponseCode ProxyHandler::RedirectRequest(std::string& location, const std::string& uri, Response* response) {
     boost::asio::io_service io_service;
     tcp::resolver resolver(io_service);
     std::cout << location << std::endl;
@@ -53,8 +53,9 @@ Response::ResponseCode ProxyHandler::RedirectRequest(std::string& location, Resp
 
     tcp::socket socket(io_service);
     boost::asio::connect(socket, endpoint_iterator);
-
-    std::string req = "GET / HTTP/1.1\r\nHost: " + location + "\r\nAccept: */*\r\nConnection: close\r\n\r\n";
+    
+    std::cout << uri << "- uri\n";
+    std::string req = "GET " + uri + " HTTP/1.1\r\nHost: " + location + "\r\nAccept: */*\r\nConnection: close\r\n\r\n";
     boost::asio::write(socket, boost::asio::buffer(req, req.size()));
 
     boost::asio::streambuf resp;
@@ -80,14 +81,16 @@ Response::ResponseCode ProxyHandler::RedirectRequest(std::string& location, Resp
     while (std::getline(response_stream, header) && header != "\r") {
         size_t colon_pos = header.find(":");
         std::string key = header.substr(0, colon_pos);
-        std::string value = header.substr(colon_pos + 2);
+        if (key == "Content-Type") {
+            std::string value = header.substr(colon_pos + 2);
 
-        if (status_code == 302 && key == "Location") {
-            location = value;
-            return Response::ResponseCode::moved_temporarily;
+            if (status_code == 302 && key == "Location") {
+                location = value;
+                return Response::ResponseCode::moved_temporarily;
+            }
+
+            response->AddHeader(key, value);
         }
-
-        response->AddHeader(key, value);
     }
 
     if (status_code != 200) {
@@ -122,10 +125,10 @@ Response::ResponseCode ProxyHandler::RedirectRequest(std::string& location, Resp
     //std::cout << response_body << std::endl;
     // if (error != boost::asio::error::eof)
     //     std::cout << "Error: " << error << std::endl;
-
+    //response->AddHeader("Content-Location", "/proxy/index.html");
     response->SetStatus(Response::ok);
     //response->SetBody(response_body);
-    //std::cout << response_body.size() << std::endl;
+    std::cout << response->ToString() << "\n";
     return Response::ResponseCode::ok;
 }
 

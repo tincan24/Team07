@@ -60,6 +60,13 @@ void connection::do_read() {
 			cur_prefix.erase(cur_prefix.end() - 1, cur_prefix.end());
 	}
 	
+    for (auto pair : request_->headers()) {
+        if (pair.first == "Referer") {
+            auto ref_uri = pair.second.find_last_of("/");
+            cur_prefix = pair.second.substr(ref_uri + 1);
+        }
+    }
+
 	if((*handlers_)[cur_prefix] != nullptr)
 	{       
 		(*handlers_)[cur_prefix]->HandleRequest(*request_, &response_);

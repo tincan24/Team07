@@ -1,4 +1,4 @@
-port 12345;
+port 8081;
 #comment
 path /echo echo_handler {}
 path /static1 file_handler {
@@ -13,5 +13,5 @@ path /status StatusHandler {}
 default NotFoundHandler {}
 
 path /proxy ProxyHandler {
-    root tincan24.github.io;
+    root www.google.com;
 }

@@ -12,9 +12,10 @@ public:
     Status Init(const std::string& uri_prefix, const NginxConfig& config);
     Status HandleRequest(const Request &request, Response* response);
 private:
-    Response::ResponseCode RedirectRequest(std::string& location, Response* response);
+    Response::ResponseCode RedirectRequest(std::string& location, const std::string& uri, Response* response);
 
     std::string location_;
+    std::string uri_prefix_;
 };
 
 REGISTER_REQUEST_HANDLER(ProxyHandler);
