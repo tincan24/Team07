@@ -13,6 +13,7 @@ public:
     Status HandleRequest(const Request &request, Response* response);
 private:
     Response::ResponseCode RedirectRequest(std::string& location, const std::string& uri, Response* response);
+    Response::ResponseCode GetResponseCode(const unsigned int& status_code);
 
     std::string location_;
     std::string uri_prefix_;
