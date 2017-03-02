@@ -33,8 +33,13 @@ RequestHandler::Status ProxyHandler::Init(const std::string& uri_prefix, const N
 RequestHandler::Status ProxyHandler::HandleRequest(const Request &request, Response* response) {
     // Continue redirecting until status code other than 302
     while (true) {
-        std::string request_uri = request.uri() == uri_prefix_ ? "/" : request.uri();
-        //std::cout << request_uri << ", " << location_ << std::endl;
+        std::string request_uri = "";
+        std::cout << request.uri() << std::endl;
+        if (request.uri() == uri_prefix_)
+            request_uri = "/";
+        else
+            request_uri = request.uri().substr(uri_prefix_.size());
+        //std::string request_uri = request.uri() == uri_prefix_ ? "/" : request.uri();
         Response::ResponseCode response_code = RedirectRequest(location_, request_uri, response);
         if (response_code != Response::ResponseCode::moved_temporarily) {
             break;
@@ -44,15 +49,24 @@ RequestHandler::Status ProxyHandler::HandleRequest(const Request &request, Respo
 }
 
 Response::ResponseCode ProxyHandler::RedirectRequest(std::string& location, const std::string& uri, Response* response) {
+    // separate location from port
+    std::size_t port_pos = location.find(':');
+    std::string remote_port;
+    std::string remote_location = location;
+    if (port_pos != std::string::npos) {
+        remote_port = remote_location.substr(port_pos+1);
+        remote_location = remote_location.substr(0, port_pos);
+    } else {
+        remote_port = "80"; // default port number
+    }
+    std::cout << remote_location << ", " << remote_port << ", " << uri << std::endl;
     boost::asio::io_service io_service;
     tcp::resolver resolver(io_service);
-    tcp::resolver::query query(location, "http");
-    tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-
     tcp::socket socket(io_service);
-    boost::asio::connect(socket, endpoint_iterator);
+    boost::asio::connect(socket, resolver.resolve({remote_location, remote_port}));
     
-    std::string req = "GET " + uri + " HTTP/1.1\r\nHost: " + location + "\r\nAccept: */*\r\nConnection: close\r\n\r\n";
+    std::string req = "GET " + uri + " HTTP/1.1\r\nHost: " + remote_location + ":" + remote_port + "\r\nAccept: */*\r\nConnection: close\r\n\r\n";
+    std::cout << req << std::endl;
     boost::asio::write(socket, boost::asio::buffer(req, req.size()));
 
     boost::asio::streambuf resp;
