@@ -10,31 +10,32 @@
 namespace http {
 namespace server {
 
+class ProxyHandlerTest : public ::testingTest {
+protected:
+    RequestHandler::Status Init() {
+        Response resp;
+        NginxConfig* config = new NginxConfig();
+        NginxConfigStatement* st = new NginxConfigStatement();
+
+        st->tokens_.push_back("root");
+        st->tokens_.push_back("ucla.edu");
+
+        return proxy_handler_.Init("/proxy", *config);
+    }
+
+    ProxyHandler proxy_handler_;
+}
+
 TEST(ProxyHandlerTest, InitTest) {
-    ProxyHandler proxy_handler;
-    NginxConfig* config = new NginxConfig();
-    NginxConfigStatement* st = new NginxConfigStatement();
-
-    st->tokens_.push_back("root");
-    st->tokens_.push_back("ucla.edu");
-
-    EXPECT_EQ(404, proxy_handler.Init("/proxy", *config));
+    EXPECT_EQ(404, Init());
 }
 
 TEST(ProxyHandlerTest, BadRequestTest) {
     Response resp;
-    ProxyHandler proxy_handler;
-    NginxConfig* config = new NginxConfig();
-    NginxConfigStatement* st = new NginxConfigStatement();
-
-    st->tokens_.push_back("root");
-    st->tokens_.push_back("ucla.edu");
-
     std::string body = "GET /proxy HTTP/1.1\r\n\r\n";
     std::unique_ptr<Request> req = Request::Parse(body);
 
-    proxy_handler.Init("/proxy", *config);
-    //proxy_handler.HandleRequest(*req, &resp);
+    Init();
 
     EXPECT_EQ("HTTP/1.1 500 Internal Server Error\r\n", resp.ToString());
 }
