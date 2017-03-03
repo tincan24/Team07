@@ -7,10 +7,11 @@
 #include <string>
 #include <limits.h>
 #include <unistd.h>
+
 namespace http {
 namespace server {
 
-class ProxyHandlerTest : public ::testingTest {
+class ProxyHandlerTest : public ::testing::Test {
 protected:
     RequestHandler::Status Init() {
         Response resp;
@@ -24,13 +25,13 @@ protected:
     }
 
     ProxyHandler proxy_handler_;
-}
+};
 
-TEST(ProxyHandlerTest, InitTest) {
+TEST_F(ProxyHandlerTest, InitTest) {
     EXPECT_EQ(404, Init());
 }
 
-TEST(ProxyHandlerTest, BadRequestTest) {
+TEST_F(ProxyHandlerTest, BadRequestTest) {
     Response resp;
     std::string body = "GET /proxy HTTP/1.1\r\n\r\n";
     std::unique_ptr<Request> req = Request::Parse(body);
