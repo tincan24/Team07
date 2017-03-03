@@ -22,6 +22,8 @@ b) echo handler - When the user decides to access the echo functionality of our 
 c) file handler- When a client requests a file, from one of our preset paths, this handler is invoked to serve the appropriate file.
 Our handlers can be found in file_handler.cpp, echo_handler.cpp and 404_handler.cpp.
 d) status handler - When a client requests the status of our server, this handler serves the types of handlers present in our server and their usage since the starting of the server.
+e) reverse proxy handler - This handler will send a request to the host specified in the config file under the ProxyHandler
+path block and return the response from the host.
 
 4) Lastly, to make the functionality of the above classes a little easier, we have two helpful data structure classes that we use named Request and Response, which are based off Boost's Request and Reply structures. As their name suggests, they hold information about the requests and responses used in the server. These structures form convenient ways to format and store request and response parameters, and examples of their usage can be seen in the connection class, as well as in our conenction handlers.
 
@@ -51,6 +53,7 @@ Our webserver comes with a Makefile with a few preconfigured build options that 
 3) make test && make run_coverage - compiles all webserver files and runs all unit and integration tests, as well as scans for test converage of our code. 
 4) make clean - removes any intermediary compile related files and executables, cleaning up your directory.
 5) make run - compiles the webserver files, and then runs the webserver using our default configuration from the file 'config'.
+6) make integration - builds the webserver to run the reverse proxy integration test
 
 Once the server is up and running, it can be accessed through a browser, or via the command line with curl requests.
 
