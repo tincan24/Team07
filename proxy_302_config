@@ -1,0 +1,17 @@
+port 12345;
+#comment
+path /echo echo_handler {}
+path /static1 file_handler {
+  root files;
+}
+path /static2 file_handler {
+#comment
+  root files1;
+}
+path /status StatusHandler {}
+
+default NotFoundHandler {}
+
+path /proxy ProxyHandler {
+    root ucla.edu;
+}

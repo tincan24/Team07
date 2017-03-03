@@ -34,3 +34,7 @@ clean:
 integration:
 	make clean && make
 	python reverse_proxy_integration.py
+
+integration_302:
+	make clean && make
+	python reverse_proxy_302_integration.py
