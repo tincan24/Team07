@@ -31,3 +31,6 @@ webserver_test:
 clean:
 	rm -rf *.o webserver webserver_test
 
+integration:
+	make clean && make
+	python reverse_proxy_integration.py
