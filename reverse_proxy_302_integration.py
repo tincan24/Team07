@@ -23,8 +23,8 @@ proxy_response, proxy_err = proxy_request_proc.communicate()
 os.killpg(os.getpgid(server_proc.pid), signal.SIGTERM)
 
 if proxy_response != direct_response:
-	print("ERROR: Proxy handler replied with a different response than a direct response")
-	exit(1)
+    print("ERROR: Proxy handler replied with a different response than a direct response")
+    exit(1)
 else:
-	print("SUCCESS: Proxy handler replied with the same response as a direct response")
-	exit(0)
+    print("SUCCESS: Proxy handler replied with the same response as a direct response")
+    exit(0)
